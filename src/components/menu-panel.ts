@@ -2,10 +2,29 @@ import { I18n } from "../i18n/i18n";
 import type { MascotOption, ViewerState } from "../types";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
 import { icon } from "./icons";
+import { Checkbox } from "./inputs";
 import { renderRabbitMascot } from "./rabbit-mascot";
 import { bindScrollFade } from "./scroll-fade";
 
-type MenuView = "menu" | "shortcut" | "pageList";
+type MenuView = "menu" | "shortcut" | "pageList" | "share";
+
+const MENU_PANELS: ReadonlySet<ViewerState["panel"]> = new Set([
+  "menu",
+  "pages",
+  "shortcuts",
+  "share"
+]);
+
+/** メニューパネル（トップメニューとその配下ビュー）が開いている panel かどうか。 */
+export function isMenuPanel(panel: ViewerState["panel"]): boolean {
+  return MENU_PANELS.has(panel);
+}
+
+const MENU_VIEWS: Partial<Record<ViewerState["panel"], MenuView>> = {
+  pages: "pageList",
+  shortcuts: "shortcut",
+  share: "share"
+};
 
 export class MenuPanel {
   private root: HTMLDivElement;
@@ -15,11 +34,15 @@ export class MenuPanel {
   private viewMenu: HTMLDivElement;
   private viewShortcut: HTMLDivElement;
   private viewPageList: HTMLDivElement;
+  private viewShare: HTMLDivElement;
+  private shareUrlInput: HTMLInputElement;
+  private sharePageCheckbox?: Checkbox;
   private pageListInner: HTMLDivElement;
   private pageListCacheKey?: string;
   private currentState?: ViewerState;
   private currentView: MenuView = "menu";
-  private i18nTexts: Array<{ el: HTMLElement; key: string }> = [];
+  private i18nTexts: Array<{ key: string; apply: (text: string) => void }> =
+    [];
 
   constructor(
     private callbacks: RendererCallbacks,
@@ -27,6 +50,7 @@ export class MenuPanel {
     private options: {
       lockLayoutMode?: boolean;
       mascot?: MascotOption;
+      pageQueryParam?: string;
     } = {}
   ) {
     this.root = document.createElement("div");
@@ -52,8 +76,15 @@ export class MenuPanel {
     this.viewMenu = this.buildMenuView();
     this.viewShortcut = this.buildShortcutView();
     [this.viewPageList, this.pageListInner] = this.buildPageListView();
+    [this.viewShare, this.shareUrlInput] = this.buildShareView();
 
-    this.bottomEl.append(border, this.viewMenu, this.viewShortcut, this.viewPageList);
+    this.bottomEl.append(
+      border,
+      this.viewMenu,
+      this.viewShortcut,
+      this.viewPageList,
+      this.viewShare
+    );
     const mascot = renderRabbitMascot(this.options.mascot);
     const children: Node[] = [background];
     if (mascot) children.push(mascot);
@@ -66,27 +97,25 @@ export class MenuPanel {
   }
 
   private bindI18nText(el: HTMLElement, key: string): void {
-    el.textContent = this.i18n.t(key);
-    this.i18nTexts.push({ el, key });
+    this.bindI18n(key, (text) => {
+      el.textContent = text;
+    });
+  }
+
+  private bindI18n(key: string, apply: (text: string) => void): void {
+    apply(this.i18n.t(key));
+    this.i18nTexts.push({ key, apply });
   }
 
   private refreshI18nTexts(): void {
-    for (const { el, key } of this.i18nTexts) {
-      el.textContent = this.i18n.t(key);
+    for (const { key, apply } of this.i18nTexts) {
+      apply(this.i18n.t(key));
     }
   }
 
   update(state: ViewerState): void {
-    const isOpen =
-      state.panel === "menu" ||
-      state.panel === "pages" ||
-      state.panel === "shortcuts";
-    const view: MenuView =
-      state.panel === "pages"
-        ? "pageList"
-        : state.panel === "shortcuts"
-          ? "shortcut"
-          : "menu";
+    const isOpen = isMenuPanel(state.panel);
+    const view: MenuView = MENU_VIEWS[state.panel] ?? "menu";
 
     this.root.dataset.open = String(isOpen);
     this.root.dataset.view = view;
@@ -103,6 +132,7 @@ export class MenuPanel {
 
     this.refreshI18nTexts();
     this.refreshPageList(state);
+    this.refreshShareUrl(state);
     this.applyHeight(isOpen, view);
 
     this.currentState = state;
@@ -115,12 +145,12 @@ export class MenuPanel {
       return;
     }
 
-    const target =
-      view === "menu"
-        ? this.viewMenu
-        : view === "shortcut"
-          ? this.viewShortcut
-          : this.viewPageList;
+    const target = {
+      menu: this.viewMenu,
+      shortcut: this.viewShortcut,
+      pageList: this.viewPageList,
+      share: this.viewShare
+    }[view];
     const height = target.offsetHeight;
     this.bottomEl.style.height = `${height}px`;
   }
@@ -176,11 +206,7 @@ export class MenuPanel {
     top.className = "comimi-menu-top";
     top.addEventListener("click", (event) => {
       event.stopPropagation();
-      const state = this.currentState;
-      const isOpen =
-        state?.panel === "menu" ||
-        state?.panel === "pages" ||
-        state?.panel === "shortcuts";
+      const isOpen = isMenuPanel(this.currentState?.panel ?? "none");
       this.callbacks.setPanel(isOpen ? "none" : "menu");
     });
 
@@ -230,6 +256,9 @@ export class MenuPanel {
       ),
       this.renderMenuLink("menu.openShortcuts", () =>
         this.callbacks.setPanel("shortcuts")
+      ),
+      this.renderMenuLink("menu.openShare", () =>
+        this.callbacks.setPanel("share")
       )
     );
 
@@ -328,6 +357,97 @@ export class MenuPanel {
 
     view.append(inner, this.renderBackButton());
     return [view, grid];
+  }
+
+  private buildShareView(): [HTMLDivElement, HTMLInputElement] {
+    const view = document.createElement("div");
+    view.className = "comimi-menu-view comimi-menu-view-share";
+
+    const inner = document.createElement("div");
+    inner.className = "comimi-share-inner";
+
+    const field = document.createElement("div");
+    field.className = "comimi-share-field";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "comimi-share-url";
+    input.readOnly = true;
+    input.spellcheck = false;
+    this.bindI18n("share.url", (text) => input.setAttribute("aria-label", text));
+    input.addEventListener("focus", () => input.select());
+    input.addEventListener("click", (event) => {
+      event.stopPropagation();
+      input.select();
+    });
+
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "comimi-share-copy";
+    const copyBg = document.createElement("span");
+    copyBg.className = "comimi-share-copy-bg";
+    const copyText = document.createElement("span");
+    copyText.className = "comimi-share-copy-text";
+    this.bindI18nText(copyText, "share.copy");
+    copy.append(copyBg, copyText);
+    copy.addEventListener("click", (event) => {
+      event.stopPropagation();
+      void this.copyShareUrl();
+    });
+
+    field.append(input, copy);
+    inner.append(field);
+
+    if (this.options.pageQueryParam) {
+      const checkbox = new Checkbox(() => {
+        if (this.currentState) {
+          this.refreshShareUrl(this.currentState);
+        }
+      });
+      this.bindI18n("share.includePage", (text) => checkbox.setLabel(text));
+      this.sharePageCheckbox = checkbox;
+      inner.append(checkbox.getElement());
+    }
+
+    view.append(inner, this.renderBackButton());
+    return [view, input];
+  }
+
+  private buildShareUrl(state: ViewerState): string {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    const url = new URL(window.location.href);
+    const key = this.options.pageQueryParam;
+    if (key) {
+      url.searchParams.delete(key);
+      if (this.sharePageCheckbox?.isChecked()) {
+        url.searchParams.set(key, String(state.currentPageIndex + 1));
+      }
+    }
+    return url.toString();
+  }
+
+  private refreshShareUrl(state: ViewerState): void {
+    const next = this.buildShareUrl(state);
+    if (this.shareUrlInput.value !== next) {
+      this.shareUrlInput.value = next;
+    }
+  }
+
+  private async copyShareUrl(): Promise<void> {
+    const text = this.shareUrlInput.value;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    } catch {
+      this.shareUrlInput.select();
+      copied = document.execCommand("copy");
+    }
+    if (copied) {
+      this.callbacks.notify(this.i18n.t("share.copied"), "success");
+    }
   }
 
   private shortcutSection(

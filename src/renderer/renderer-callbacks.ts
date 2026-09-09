@@ -20,4 +20,5 @@ export interface RendererCallbacks {
   ): void;
   setPan(panX: number, panY: number): void;
   resetZoom(): void;
+  notify(message: string, tone?: "info" | "success" | "error"): void;
 }

@@ -107,7 +107,7 @@ export interface ViewerState {
     wideHeightPx?: number;
   };
   notifications: ViewerNotification[];
-  panel: "none" | "settings" | "menu" | "pages" | "shortcuts";
+  panel: "none" | "settings" | "menu" | "pages" | "shortcuts" | "share";
 }
 
 export type TranslationMap = Record<string, string>;

@@ -66,6 +66,7 @@ export interface ViewerRendererOptions {
   lockLayoutMode?: boolean;
   mascot?: MascotOption | MascotAreaOptions;
   hidden?: ReadonlySet<HideableControl>;
+  pageQueryParam?: string;
 }
 
 export class ViewerRenderer {
@@ -101,6 +102,7 @@ export class ViewerRenderer {
   private readonly lockLayoutMode: boolean;
   private readonly mascot?: MascotOption | MascotAreaOptions;
   private readonly hidden: ReadonlySet<HideableControl>;
+  private readonly pageQueryParam?: string;
 
   private readonly handleVisibilityChange = (): void => {
     if (this.destroyed || document.visibilityState !== "visible") {
@@ -124,6 +126,7 @@ export class ViewerRenderer {
     this.lockLayoutMode = options.lockLayoutMode ?? false;
     this.mascot = options.mascot;
     this.hidden = options.hidden ?? new Set();
+    this.pageQueryParam = options.pageQueryParam;
     ensureViewerStyles();
     this.pageStage = new PageStage({
       assetLoader: options.assetLoader,
@@ -207,7 +210,8 @@ export class ViewerRenderer {
     if (!this.menuPanel) {
       this.menuPanel = new MenuPanel(this.callbacks, this.i18n, {
         lockLayoutMode: this.lockLayoutMode,
-        mascot: resolveMascot(this.mascot, "menu")
+        mascot: resolveMascot(this.mascot, "menu"),
+        pageQueryParam: this.pageQueryParam
       });
     }
     if (
@@ -645,7 +649,7 @@ export class ViewerRenderer {
         return;
       }
 
-      if (event.button !== 0) {
+      if (event.button !== 0 || this.isSwipeLocked(state)) {
         return;
       }
 
@@ -692,7 +696,10 @@ export class ViewerRenderer {
         return;
       }
 
-      if (this.isSwipeBlockingTarget(event.target)) {
+      if (
+        this.isSwipeBlockingTarget(event.target) ||
+        this.isSwipeLocked(state)
+      ) {
         return;
       }
 
@@ -916,6 +923,12 @@ export class ViewerRenderer {
   ): number {
     const side = getPageGroupSide(state, direction);
     return side === "left" ? this.root.clientWidth : -this.root.clientWidth;
+  }
+
+  // 自動再生中はスワイプによるページ移動を受け付けない。
+  // ズーム中のパン操作はページ移動ではないので許可する。
+  private isSwipeLocked(state: ViewerState): boolean {
+    return state.autoPageTurnEnabled && state.zoomScale <= 1;
   }
 
   private isInteractiveTarget(target: EventTarget | null): boolean {

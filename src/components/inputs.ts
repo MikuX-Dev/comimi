@@ -51,6 +51,48 @@ export class ToggleSwitch {
   }
 }
 
+export class Checkbox {
+  private root: HTMLLabelElement;
+  private input: HTMLInputElement;
+  private label: HTMLSpanElement;
+
+  constructor(onChange: (checked: boolean) => void) {
+    this.root = document.createElement("label");
+    this.root.className = "comimi-checkbox";
+    this.root.addEventListener("click", (event) => event.stopPropagation());
+
+    this.input = document.createElement("input");
+    this.input.type = "checkbox";
+    this.input.className = "comimi-checkbox-input";
+    this.input.addEventListener("change", () => onChange(this.input.checked));
+
+    const box = document.createElement("span");
+    box.className = "comimi-checkbox-box";
+    box.append(icon("check"));
+
+    this.label = document.createElement("span");
+    this.label.className = "comimi-checkbox-label";
+
+    this.root.append(this.input, box, this.label);
+  }
+
+  setLabel(text: string): void {
+    this.label.textContent = text;
+  }
+
+  setChecked(checked: boolean): void {
+    this.input.checked = checked;
+  }
+
+  isChecked(): boolean {
+    return this.input.checked;
+  }
+
+  getElement(): HTMLLabelElement {
+    return this.root;
+  }
+}
+
 export class Selectbox {
   private root: HTMLDivElement;
   private select: HTMLSelectElement;

@@ -6,6 +6,7 @@ import {
 } from "../defaults";
 import { I18n } from "../i18n/i18n";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
+import { isMenuPanel } from "../components/menu-panel";
 import { ViewerRenderer } from "../renderer/viewer-renderer";
 import { IndexedDbStorage } from "../storage/indexed-db-storage";
 import { ViewerStore } from "../store/store";
@@ -33,6 +34,19 @@ const PER_MANGA_SETTING_KEYS = [
   "readingDirection"
 ] as const;
 type PerMangaSettingKey = (typeof PER_MANGA_SETTING_KEYS)[number];
+
+// 操作が無いままこの時間が経過するとオーバーレイを自動で閉じる。
+const OVERLAY_AUTO_HIDE_MS = 3000;
+// ビューワー内でこれらのイベントが起きたら「操作中」とみなしタイマーを延長する。
+const OVERLAY_ACTIVITY_EVENTS = [
+  "mousemove",
+  "mousedown",
+  "touchstart",
+  "touchmove",
+  "wheel",
+  "focusin",
+  "input"
+] as const;
 
 /** 作品ごとキーを除いた global 用の設定スナップショットを返す。 */
 function stripPerMangaSettings(
@@ -90,6 +104,7 @@ export class MangaViewerCore implements MangaViewerInstance {
   private unsubscribers: Array<() => void> = [];
   private notificationTimer?: number;
   private autoTimer?: number;
+  private overlayHideTimer?: number;
   private bootstrapTimers: number[] = [];
   private destroyed = false;
   private mobileMediaQuery?: MediaQueryList;
@@ -158,7 +173,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       setZoom: (scale, panX, panY, pageIndex) =>
         this.store.dispatch({ type: "setZoom", scale, panX, panY, pageIndex }),
       setPan: (panX, panY) => this.store.dispatch({ type: "setPan", panX, panY }),
-      resetZoom: () => this.store.dispatch({ type: "resetZoom" })
+      resetZoom: () => this.store.dispatch({ type: "resetZoom" }),
+      notify: (message, tone) => this.notify(message, tone)
     };
 
     this.renderer = new ViewerRenderer(this.container, {
@@ -169,7 +185,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       resolvePageSrc: options.resolvePageSrc,
       lockLayoutMode: this.lockLayoutMode,
       mascot: options.mascot,
-      hidden: new Set(options.hiddenSettings ?? [])
+      hidden: new Set(options.hiddenSettings ?? []),
+      pageQueryParam: options.initialPageQueryParam
     });
 
     for (const [eventName, handler] of Object.entries(
@@ -190,12 +207,14 @@ export class MangaViewerCore implements MangaViewerInstance {
 
     this.bindKeyboard();
     this.bindViewportChange();
+    this.bindOverlayActivity();
     this.bootstrap();
   }
 
   destroy(): void {
     this.destroyed = true;
     window.clearInterval(this.autoTimer);
+    window.clearTimeout(this.overlayHideTimer);
     for (const timer of this.bootstrapTimers) {
       window.clearTimeout(timer);
     }
@@ -482,6 +501,8 @@ export class MangaViewerCore implements MangaViewerInstance {
         return;
       }
 
+      this.syncOverlayAutoHide();
+
       switch (event.key) {
         case "ArrowLeft":
           event.preventDefault();
@@ -528,11 +549,7 @@ export class MangaViewerCore implements MangaViewerInstance {
         case "m":
         case "M": {
           event.preventDefault();
-          const currentPanel = this.store.getState().panel;
-          const menuOpen =
-            currentPanel === "menu" ||
-            currentPanel === "pages" ||
-            currentPanel === "shortcuts";
+          const menuOpen = isMenuPanel(this.store.getState().panel);
           // setPanel が panel!=="none" のとき overlayVisible を立てるため、
           // ここで toggleOverlay は呼ばない（二重 dispatch で表示用 rAF が
           // キャンセルされ、オーバーレイが表示されなくなる）。
@@ -585,6 +602,21 @@ export class MangaViewerCore implements MangaViewerInstance {
     return !target.closest(
       "input, select, textarea, [contenteditable='true']"
     );
+  }
+
+  // ビューワー内での操作（マウス移動・タッチ・入力など）を検知して
+  // オーバーレイの自動非表示タイマーを延長する。
+  private bindOverlayActivity(): void {
+    const element = this.renderer.getElement();
+    const onActivity = () => this.syncOverlayAutoHide();
+    for (const eventName of OVERLAY_ACTIVITY_EVENTS) {
+      element.addEventListener(eventName, onActivity, { passive: true });
+    }
+    this.unsubscribers.push(() => {
+      for (const eventName of OVERLAY_ACTIVITY_EVENTS) {
+        element.removeEventListener(eventName, onActivity);
+      }
+    });
   }
 
   private bindViewportChange(): void {
@@ -654,6 +686,32 @@ export class MangaViewerCore implements MangaViewerInstance {
     if (state.layout.mode !== previous.layout.mode) {
       this.syncBodyScrollLock(state.layout.mode);
     }
+    if (
+      state.overlayVisible !== previous.overlayVisible ||
+      state.panel !== previous.panel
+    ) {
+      this.syncOverlayAutoHide();
+    }
+  }
+
+  // オーバーレイ表示中、操作が無ければ一定時間後に自動で閉じる。
+  // パネル（メニュー・設定）を開いている間は閲覧中とみなして閉じない。
+  private syncOverlayAutoHide(): void {
+    window.clearTimeout(this.overlayHideTimer);
+    this.overlayHideTimer = undefined;
+
+    const state = this.store.getState();
+    if (!state.overlayVisible || state.panel !== "none") {
+      return;
+    }
+
+    this.overlayHideTimer = window.setTimeout(() => {
+      this.overlayHideTimer = undefined;
+      if (this.destroyed) {
+        return;
+      }
+      this.toggleOverlay(false);
+    }, OVERLAY_AUTO_HIDE_MS);
   }
 
   // CSS 全画面（browserFullscreen）はビューワーを position:fixed で重ねるだけで
