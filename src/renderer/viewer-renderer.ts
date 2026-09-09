@@ -645,7 +645,7 @@ export class ViewerRenderer {
         return;
       }
 
-      if (event.button !== 0) {
+      if (event.button !== 0 || this.isSwipeLocked(state)) {
         return;
       }
 
@@ -692,7 +692,10 @@ export class ViewerRenderer {
         return;
       }
 
-      if (this.isSwipeBlockingTarget(event.target)) {
+      if (
+        this.isSwipeBlockingTarget(event.target) ||
+        this.isSwipeLocked(state)
+      ) {
         return;
       }
 
@@ -916,6 +919,12 @@ export class ViewerRenderer {
   ): number {
     const side = getPageGroupSide(state, direction);
     return side === "left" ? this.root.clientWidth : -this.root.clientWidth;
+  }
+
+  // 自動再生中はスワイプによるページ移動を受け付けない。
+  // ズーム中のパン操作はページ移動ではないので許可する。
+  private isSwipeLocked(state: ViewerState): boolean {
+    return state.autoPageTurnEnabled && state.zoomScale <= 1;
   }
 
   private isInteractiveTarget(target: EventTarget | null): boolean {
