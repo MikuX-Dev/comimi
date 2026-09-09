@@ -9,7 +9,6 @@ export const viewerRootStyles = `
   --comimi-line: #e0e0e0;
   --comimi-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   --comimi-shadow-soft: 0 0 16px 0 rgba(0, 0, 0, 0.06);
-  --comimi-shadow-focus: 0 0 24px 0 rgba(0, 0, 0, 0.14);
   --comimi-shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.18);
   --comimi-glass: rgba(255, 255, 255, 0.8);
   --comimi-glass-strong: rgba(255, 255, 255, 0.8);
@@ -54,7 +53,6 @@ export const viewerRootStyles = `
 
 .comimi-root:focus {
   outline: none;
-  box-shadow: var(--comimi-shadow-focus);
 }
 
 @media (max-width: 767px) {
@@ -91,7 +89,6 @@ export const viewerRootStyles = `
   --comimi-mascot-shade: #666;
   --comimi-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
   --comimi-shadow-soft: 0 0 16px 0 rgba(0, 0, 0, 0.45);
-  --comimi-shadow-focus: 0 0 24px 0 rgba(0, 0, 0, 0.6);
   --comimi-shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
