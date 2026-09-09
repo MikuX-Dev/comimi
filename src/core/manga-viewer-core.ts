@@ -6,6 +6,7 @@ import {
 } from "../defaults";
 import { I18n } from "../i18n/i18n";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
+import { isMenuPanel } from "../components/menu-panel";
 import { ViewerRenderer } from "../renderer/viewer-renderer";
 import { IndexedDbStorage } from "../storage/indexed-db-storage";
 import { ViewerStore } from "../store/store";
@@ -158,7 +159,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       setZoom: (scale, panX, panY, pageIndex) =>
         this.store.dispatch({ type: "setZoom", scale, panX, panY, pageIndex }),
       setPan: (panX, panY) => this.store.dispatch({ type: "setPan", panX, panY }),
-      resetZoom: () => this.store.dispatch({ type: "resetZoom" })
+      resetZoom: () => this.store.dispatch({ type: "resetZoom" }),
+      notify: (message, tone) => this.notify(message, tone)
     };
 
     this.renderer = new ViewerRenderer(this.container, {
@@ -169,7 +171,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       resolvePageSrc: options.resolvePageSrc,
       lockLayoutMode: this.lockLayoutMode,
       mascot: options.mascot,
-      hidden: new Set(options.hiddenSettings ?? [])
+      hidden: new Set(options.hiddenSettings ?? []),
+      pageQueryParam: options.initialPageQueryParam
     });
 
     for (const [eventName, handler] of Object.entries(
@@ -528,11 +531,7 @@ export class MangaViewerCore implements MangaViewerInstance {
         case "m":
         case "M": {
           event.preventDefault();
-          const currentPanel = this.store.getState().panel;
-          const menuOpen =
-            currentPanel === "menu" ||
-            currentPanel === "pages" ||
-            currentPanel === "shortcuts";
+          const menuOpen = isMenuPanel(this.store.getState().panel);
           // setPanel が panel!=="none" のとき overlayVisible を立てるため、
           // ここで toggleOverlay は呼ばない（二重 dispatch で表示用 rAF が
           // キャンセルされ、オーバーレイが表示されなくなる）。

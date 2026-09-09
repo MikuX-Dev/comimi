@@ -46,7 +46,7 @@ export const viewerRootStyles = `
     background-color 0.16s linear;
 }
 
-.comimi-root *:not(.comimi-html-page):not(.comimi-html-page *) {
+.comimi-root *:not(.comimi-html-page):not(.comimi-html-page *):not(.comimi-share-url) {
   user-select: none;
   -webkit-user-select: none;
 }

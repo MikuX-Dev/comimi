@@ -137,7 +137,8 @@ export const menuPanelStyles = `
 
 .comimi-menu-panel[data-view="menu"] .comimi-menu-view-menu,
 .comimi-menu-panel[data-view="shortcut"] .comimi-menu-view-shortcut,
-.comimi-menu-panel[data-view="pageList"] .comimi-menu-view-page-list {
+.comimi-menu-panel[data-view="pageList"] .comimi-menu-view-page-list,
+.comimi-menu-panel[data-view="share"] .comimi-menu-view-share {
   opacity: 1;
   visibility: visible;
   transform: scale(1);
@@ -334,6 +335,78 @@ export const menuPanelStyles = `
   font-size: 13px;
   font-weight: 400;
   line-height: 1.45;
+}
+
+.comimi-share-inner {
+  display: grid;
+  row-gap: 12px;
+  box-sizing: border-box;
+  padding: 16px 22px 8px;
+}
+
+.comimi-share-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.comimi-share-url {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--comimi-surface-2);
+  color: var(--comimi-fg);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  outline: none;
+  text-overflow: ellipsis;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.comimi-share-url::selection {
+  background: var(--comimi-muted);
+  color: var(--comimi-white);
+}
+
+.comimi-share-copy {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.comimi-share-copy-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: var(--comimi-muted);
+  transition: inset 0.36s var(--comimi-spring), border-radius 0.36s var(--comimi-spring);
+}
+
+@media (hover: hover) {
+  .comimi-share-copy:hover .comimi-share-copy-bg {
+    inset: -3px;
+    border-radius: 10px;
+  }
+}
+
+.comimi-share-copy-text {
+  position: relative;
+  display: block;
+  padding: 8px 14px;
+  color: var(--comimi-white);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  white-space: nowrap;
 }
 
 .comimi-back-button {

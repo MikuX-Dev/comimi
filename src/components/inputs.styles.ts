@@ -172,6 +172,79 @@ export const inputsStyles = `
   transform: translateX(100%);
 }
 
+.comimi-checkbox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.comimi-checkbox-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.comimi-checkbox-box {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--comimi-surface-2);
+  color: var(--comimi-white);
+  transition:
+    background-color 0.2s linear,
+    transform 0.36s var(--comimi-spring);
+}
+
+.comimi-checkbox-box > svg {
+  position: absolute;
+  inset: 1px;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.2s linear,
+    transform 0.36s var(--comimi-spring);
+}
+
+@media (hover: hover) {
+  .comimi-checkbox:hover .comimi-checkbox-box {
+    transform: scale(1.1);
+  }
+}
+
+.comimi-checkbox-input:checked + .comimi-checkbox-box {
+  background: var(--comimi-muted);
+}
+
+.comimi-checkbox-input:checked + .comimi-checkbox-box > svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.comimi-checkbox-input:focus-visible + .comimi-checkbox-box {
+  outline: 2px solid var(--comimi-faint);
+  outline-offset: 2px;
+}
+
+.comimi-checkbox-label {
+  color: var(--comimi-fg);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
 .comimi-range-slider {
   display: grid;
   grid-template-columns: 1fr auto;
