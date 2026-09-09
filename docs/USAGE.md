@@ -150,7 +150,7 @@ interface HtmlPage {
 | `locale` | `"ja"` | UI言語 |
 | `hasCover` | `true` | 表紙ありモード（見開き時、1ページ目を単独表示） |
 | `readingDirection` | `"rtl"` | `"rtl"`（右→左、日本語漫画）/ `"ltr"` |
-| `pageTurnMode` | `"single"` | `"single"` / `"spread"`（2ページ見開き） |
+| `pageTurnMode` | `"spread"` | `"single"` / `"spread"`（2ページ見開き）。モバイル幅では常に1ページ表示 |
 | `layoutMode` | `"inline"` | `"inline"`, `"wide"`, `"browserFullscreen"`, `"nativeFullscreen"` |
 | `autoPageTurnIntervalMs` | `5000` | 自動再生の間隔 (ms) |
 | `backgroundColor` | `"white"` | `"white"` / `"black"`（ビューワー本体の背景色） |

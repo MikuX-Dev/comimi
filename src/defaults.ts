@@ -8,7 +8,7 @@ export const defaultSettings: ViewerSettings = {
   locale: "ja",
   hasCover: true,
   readingDirection: "rtl",
-  pageTurnMode: "single",
+  pageTurnMode: "spread",
   layoutMode: "inline",
   autoPageTurnIntervalMs: 5000,
   backgroundColor: "white",
