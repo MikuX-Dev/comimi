@@ -5,7 +5,7 @@ export const splashScreenStyles = `
   z-index: 10;
   background-color: var(--comimi-line);
   overflow: hidden;
-  animation: comimi-splash-clip 1s cubic-bezier(0.82, 0.01, 0.48, 1.02) 1s both;
+  animation: comimi-splash-clip 1s cubic-bezier(0.82, 0.01, 0.48, 1.02) 0.6s both;
   pointer-events: none;
 }
 

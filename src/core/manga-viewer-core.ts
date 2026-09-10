@@ -470,7 +470,7 @@ export class MangaViewerCore implements MangaViewerInstance {
   // 中央だけは最初に進行方向ガイドを出し、約2秒後に「中央をクリック」
   // メッセージと入れ替える（クロスフェード）。
   private startBootstrapGuide(): void {
-    const OVERLAY_REVEAL_MS = 1550;
+    const OVERLAY_REVEAL_MS = 1150;
     const GUIDE_DURATION_MS = 2000;
 
     // オーバーレイ表示時に中央でまずガイドを見せるための表示要求。

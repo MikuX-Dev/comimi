@@ -38,7 +38,7 @@ interface DragStart {
 }
 
 const PAGE_TURN_ANIMATION_MS = 180;
-const SPLASH_DURATION_MS = 2000;
+const SPLASH_DURATION_MS = 1600;
 
 // スワイプ（ページめくり）を開始させない要素。
 // リンク（a）はジェスチャー追跡を許可し、タップなら遷移／スワイプならめくりに振り分ける。
