@@ -192,6 +192,12 @@ export class MenuPanel {
 
       const thumb = document.createElement("span");
       thumb.className = "comimi-page-list-thumb";
+
+      const badge = document.createElement("span");
+      badge.className = "comimi-page-list-badge";
+      badge.textContent = String(index + 1);
+      thumb.append(badge);
+
       if (page.type === "image") {
         const image = document.createElement("img");
         image.alt =
@@ -208,11 +214,13 @@ export class MenuPanel {
         thumb.append(placeholder);
       }
 
-      const text = document.createElement("span");
-      text.className = "comimi-page-list-text";
-      text.textContent = page.label ?? String(index + 1);
-
-      item.append(thumb, text);
+      item.append(thumb);
+      if (page.label) {
+        const text = document.createElement("span");
+        text.className = "comimi-page-list-text";
+        text.textContent = page.label;
+        item.append(text);
+      }
       this.pageListInner.append(item);
     });
   }

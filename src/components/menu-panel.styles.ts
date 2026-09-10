@@ -517,5 +517,9 @@ export const menuPanelStyles = `
   .comimi-shortcut-inner {
     max-height: calc(var(--view-height, 100vh) - 62px - 56px);
   }
+
+  .comimi-menu-link-shortcuts {
+    display: none;
+  }
 }
 `;
