@@ -81,7 +81,39 @@ export const menuPanelStyles = `
 }
 
 .comimi-menu-title-wrap {
+  position: relative;
+  display: block;
   min-width: 0;
+  overflow: hidden;
+}
+
+.comimi-menu-title-inner {
+  position: relative;
+  display: block;
+  transition: transform 0.4s var(--comimi-spring);
+}
+
+.comimi-menu-panel:not([data-view="menu"]) .comimi-menu-title-inner {
+  transform: translateY(-100%);
+}
+
+.comimi-menu-title-main {
+  display: block;
+  min-width: 0;
+}
+
+.comimi-menu-title-detail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  transform: translateY(100%);
+  color: var(--comimi-fg);
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .comimi-menu-title {
@@ -194,7 +226,7 @@ export const menuPanelStyles = `
 
 .comimi-page-list-inner {
   box-sizing: border-box;
-  padding: 0 22px;
+  padding: 0 16px;
   max-height: 315px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -202,8 +234,8 @@ export const menuPanelStyles = `
 
 .comimi-page-list-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .comimi-page-list-item {
@@ -225,6 +257,26 @@ export const menuPanelStyles = `
   background: var(--comimi-panel);
   border-radius: 6px;
   outline: 3px solid var(--comimi-line);
+}
+
+.comimi-page-list-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 1;
+  box-sizing: border-box;
+  min-width: 20px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--comimi-glass);
+  box-shadow: var(--comimi-shadow);
+  backdrop-filter: blur(5px);
+  color: var(--comimi-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
 }
 
 .comimi-page-list-thumb-html {
@@ -484,6 +536,10 @@ export const menuPanelStyles = `
   .comimi-page-list-inner,
   .comimi-shortcut-inner {
     max-height: calc(var(--view-height, 100vh) - 62px - 56px);
+  }
+
+  .comimi-menu-link-shortcuts {
+    display: none;
   }
 }
 `;
