@@ -81,7 +81,39 @@ export const menuPanelStyles = `
 }
 
 .comimi-menu-title-wrap {
+  position: relative;
+  display: block;
   min-width: 0;
+  overflow: hidden;
+}
+
+.comimi-menu-title-inner {
+  position: relative;
+  display: block;
+  transition: transform 0.4s var(--comimi-spring);
+}
+
+.comimi-menu-panel:not([data-view="menu"]) .comimi-menu-title-inner {
+  transform: translateY(-100%);
+}
+
+.comimi-menu-title-main {
+  display: block;
+  min-width: 0;
+}
+
+.comimi-menu-title-detail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  transform: translateY(100%);
+  color: var(--comimi-fg);
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .comimi-menu-title {

@@ -26,10 +26,17 @@ const MENU_VIEWS: Partial<Record<ViewerState["panel"], MenuView>> = {
   share: "share"
 };
 
+const VIEW_TITLE_KEYS: Record<Exclude<MenuView, "menu">, string> = {
+  pageList: "menu.openPages",
+  shortcut: "menu.openShortcuts",
+  share: "menu.openShare"
+};
+
 export class MenuPanel {
   private root: HTMLDivElement;
   private titleEl: HTMLSpanElement;
   private authorEl: HTMLSpanElement;
+  private detailTitleEl: HTMLSpanElement;
   private bottomEl: HTMLDivElement;
   private viewMenu: HTMLDivElement;
   private viewShortcut: HTMLDivElement;
@@ -64,7 +71,7 @@ export class MenuPanel {
     background.className = "comimi-menu-bg";
 
     const top = this.buildTop();
-    [this.titleEl, this.authorEl] = this.findTitleNodes(top);
+    [this.titleEl, this.authorEl, this.detailTitleEl] = this.findTitleNodes(top);
 
     this.bottomEl = document.createElement("div");
     this.bottomEl.className = "comimi-menu-bottom";
@@ -131,12 +138,22 @@ export class MenuPanel {
     }
 
     this.refreshI18nTexts();
+    this.refreshDetailTitle(view);
     this.refreshPageList(state);
     this.refreshShareUrl(state);
     this.applyHeight(isOpen, view);
 
     this.currentState = state;
     this.currentView = view;
+  }
+
+  // 詳細ビューの見出しはテロップのように作品タイトルと入れ替わる。
+  // メニューへ戻るスライド中も直前の見出しを残すため、menu では書き換えない。
+  private refreshDetailTitle(view: MenuView): void {
+    if (view === "menu") {
+      return;
+    }
+    this.detailTitleEl.textContent = this.i18n.t(VIEW_TITLE_KEYS[view]);
   }
 
   private applyHeight(isOpen: boolean, view: MenuView): void {
@@ -222,26 +239,41 @@ export class MenuPanel {
     const titleWrap = document.createElement("span");
     titleWrap.className = "comimi-menu-title-wrap";
 
+    const titleInner = document.createElement("span");
+    titleInner.className = "comimi-menu-title-inner";
+
+    const main = document.createElement("span");
+    main.className = "comimi-menu-title-main";
+
     const title = document.createElement("span");
     title.className = "comimi-menu-title";
 
     const author = document.createElement("span");
     author.className = "comimi-menu-author";
 
-    titleWrap.append(title, author);
+    main.append(title, author);
+
+    const detail = document.createElement("span");
+    detail.className = "comimi-menu-title-detail";
+
+    titleInner.append(main, detail);
+    titleWrap.append(titleInner);
     top.append(buttonFrame, titleWrap);
     return top;
   }
 
   private findTitleNodes(
     top: HTMLButtonElement
-  ): [HTMLSpanElement, HTMLSpanElement] {
+  ): [HTMLSpanElement, HTMLSpanElement, HTMLSpanElement] {
     const title = top.querySelector<HTMLSpanElement>(".comimi-menu-title");
     const author = top.querySelector<HTMLSpanElement>(".comimi-menu-author");
-    if (!title || !author) {
+    const detail = top.querySelector<HTMLSpanElement>(
+      ".comimi-menu-title-detail"
+    );
+    if (!title || !author || !detail) {
       throw new Error("MenuPanel title nodes missing");
     }
-    return [title, author];
+    return [title, author, detail];
   }
 
   private buildMenuView(): HTMLDivElement {
