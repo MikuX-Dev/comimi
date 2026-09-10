@@ -294,8 +294,10 @@ export class MenuPanel {
       this.renderMenuLink("menu.openPages", () =>
         this.callbacks.setPanel("pages")
       ),
-      this.renderMenuLink("menu.openShortcuts", () =>
-        this.callbacks.setPanel("shortcuts")
+      this.renderMenuLink(
+        "menu.openShortcuts",
+        () => this.callbacks.setPanel("shortcuts"),
+        "comimi-menu-link-shortcuts"
       ),
       this.renderMenuLink("menu.openShare", () =>
         this.callbacks.setPanel("share")
@@ -308,11 +310,12 @@ export class MenuPanel {
 
   private renderMenuLink(
     labelKey: string,
-    onClick: () => void
+    onClick: () => void,
+    className = ""
   ): HTMLButtonElement {
     const link = document.createElement("button");
     link.type = "button";
-    link.className = "comimi-menu-link";
+    link.className = `comimi-menu-link ${className}`.trim();
     link.addEventListener("click", (event) => {
       event.stopPropagation();
       onClick();
