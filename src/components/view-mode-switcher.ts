@@ -3,6 +3,10 @@ import type { LayoutMode, ViewerState } from "../types";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
 import { icon, type IconName } from "./icons";
 
+// インジケーターの移動量。CSS の grid-template-columns と揃える。
+const DEFAULT_BUTTON_WIDTH = 60;
+const COMPACT_BUTTON_WIDTH = 48;
+
 interface ModeEntry {
   mode: LayoutMode;
   iconName: IconName;
@@ -17,14 +21,20 @@ export class ViewModeSwitcher {
   private tooltip: HTMLSpanElement;
   private entries: ModeEntry[];
   private prevMode?: LayoutMode;
+  private readonly buttonWidth: number;
 
   constructor(
     private callbacks: RendererCallbacks,
-    private i18n: I18n
+    private i18n: I18n,
+    options: { compact?: boolean } = {}
   ) {
     this.root = document.createElement("div");
     this.root.className = "comimi-view-switcher comimi-has-tooltip";
     this.root.dataset.overlay = "false";
+    this.root.dataset.compact = String(options.compact ?? false);
+    this.buttonWidth = options.compact
+      ? COMPACT_BUTTON_WIDTH
+      : DEFAULT_BUTTON_WIDTH;
 
     this.indicator = document.createElement("span");
     this.indicator.className = "comimi-view-switcher-indicator";
@@ -80,7 +90,9 @@ export class ViewModeSwitcher {
       0,
       this.entries.findIndex((entry) => entry.mode === state.layout.mode)
     );
-    this.indicator.style.transform = `translateX(${selectedIndex * 60}px)`;
+    this.indicator.style.transform = `translateX(${
+      selectedIndex * this.buttonWidth
+    }px)`;
 
     const changed =
       this.prevMode !== undefined && this.prevMode !== state.layout.mode;

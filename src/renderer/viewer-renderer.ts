@@ -226,7 +226,8 @@ export class ViewerRenderer {
         this.callbacks,
         this.i18n,
         resolveMascot(this.mascot, "menu"),
-        this.hidden
+        this.hidden,
+        this.lockLayoutMode
       );
     }
     if (!this.notifications) {

@@ -44,8 +44,14 @@ export const controlsDockStyles = `
 .comimi-controls-row {
   position: relative;
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   justify-content: space-between;
+  align-items: center;
+}
+
+.comimi-controls-center {
+  display: grid;
+  justify-content: center;
   align-items: center;
 }
 
