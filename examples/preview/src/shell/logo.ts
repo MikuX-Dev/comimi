@@ -77,21 +77,10 @@ function renderHeart(index: 1 | 2): HTMLDivElement {
   return heart;
 }
 
-export interface LogoOptions {
-  /** 本家のイントロモーションを再生するか（false なら耳の揺れと瞬きだけ） */
-  animated?: boolean;
-  /** ロゴ下から滑り出すコンセプト画像の URL（ヒーロー用） */
-  conceptSrc?: string;
-}
-
-export function renderLogo(
-  tone: "dark" | "light",
-  options: LogoOptions = {}
-): HTMLDivElement {
+export function renderLogo(tone: "dark" | "light"): HTMLDivElement {
   const wrap = document.createElement("div");
   wrap.className = "pv-logo";
   wrap.dataset.tone = tone;
-  wrap.dataset.animated = String(options.animated ?? false);
   wrap.setAttribute("role", "img");
   wrap.setAttribute("aria-label", "comimi");
 
@@ -104,17 +93,5 @@ export function renderLogo(
   typo.append(renderTypo(), renderHeart(1), renderHeart(2));
 
   wrap.append(symbol, typo);
-
-  if (options.conceptSrc) {
-    const conceptWrap = document.createElement("div");
-    conceptWrap.className = "pv-concept-wrap";
-    const concept = document.createElement("img");
-    concept.className = "pv-concept";
-    concept.src = options.conceptSrc;
-    concept.alt = "comimiは、オープンソースな漫画ビューワーです。";
-    conceptWrap.append(concept);
-    wrap.append(conceptWrap);
-  }
-
   return wrap;
 }

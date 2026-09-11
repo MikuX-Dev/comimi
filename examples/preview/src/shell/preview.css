@@ -93,11 +93,10 @@ body {
   --logo-scale: 0.8;
   display: block;
   width: calc(360px * var(--logo-scale));
-  height: calc(150px * var(--logo-scale));
+  height: calc(99px * var(--logo-scale));
 }
 
 .pv-logo {
-  --delay: 1s;
   position: relative;
   width: 360px;
   height: 99px;
@@ -148,24 +147,16 @@ body {
   stroke-width: 10px;
 }
 
-.pv-symbol-ear {
-  transform-origin: 56px 43px;
-}
-
 .pv-symbol-body {
   fill: var(--logo-body);
 }
 
 .pv-symbol-eye {
   fill: var(--logo-ink);
-  transform-box: fill-box;
-  transform-origin: center;
 }
 
 .pv-typo-letter {
   fill: var(--logo-ink);
-  transform-box: fill-box;
-  transform-origin: center;
 }
 
 .pv-heart {
@@ -201,229 +192,20 @@ body {
 
 .pv-heart-1 {
   right: -2px;
-  --d: 3.7s;
 }
 
 .pv-heart-2 {
   right: 76px;
-  --d: 3.6s;
 }
 
-/* 静止版（フッター）: 耳の揺れと瞬きだけ。1.6 秒ごとに作り直して繰り返す */
-.pv-logo[data-animated="false"] .pv-symbol-eyes {
+.pv-symbol-eyes {
   transform: translateX(-7px);
-}
-
-.pv-logo[data-animated="false"] .pv-symbol-ear-left {
-  animation: pv-ear-left 0.4s ease-in-out 0.3s 2 forwards;
-}
-
-.pv-logo[data-animated="false"] .pv-symbol-ear-right {
-  animation: pv-ear-right 0.4s ease-in-out 0.3s 2 forwards;
-}
-
-.pv-logo[data-animated="false"] .pv-symbol-eye {
-  animation: pv-blink 0.4s ease-in-out 0.2s forwards;
-}
-
-/* イントロ版（ヒーロー）: 本家 yui540.com/comimi のモーションを移植 */
-.pv-logo[data-animated="true"] .pv-logo-symbol {
-  transform: translateX(120%);
-  animation:
-    pv-move1 0.3s ease-in-out calc(var(--delay) + 2.1s) both,
-    pv-move2 0.3s ease-in-out calc(var(--delay) + 2.5s) forwards,
-    pv-move3 0.3s ease-in-out calc(var(--delay) + 2.9s) forwards;
-}
-
-.pv-logo[data-animated="true"] .pv-symbol {
-  transform-origin: center bottom;
-  animation:
-    pv-standby 0.55s ease-in-out calc(var(--delay) + 1.4s) both,
-    pv-down 0.3s ease-in-out calc(var(--delay) + 2.3s) forwards,
-    pv-down 0.3s ease-in-out calc(var(--delay) + 2.7s) forwards,
-    pv-down 0.3s ease-in-out calc(var(--delay) + 3.1s) forwards;
-}
-
-.pv-logo[data-animated="true"] .pv-symbol-group {
-  animation:
-    pv-popup 0.5s ease-in-out calc(var(--delay) + 0.2s) both,
-    pv-popup2 0.3s ease-in-out calc(var(--delay) + 1.4s) forwards;
-}
-
-.pv-logo[data-animated="true"] .pv-symbol-ear-left {
-  animation:
-    pv-ear-left 0.4s ease-in-out calc(var(--delay) + 0.6s) 2 both,
-    pv-ear-left 0.4s ease-in-out calc(var(--delay) + 4.1s) 2 forwards;
-}
-
-.pv-logo[data-animated="true"] .pv-symbol-ear-right {
-  animation:
-    pv-ear-right 0.4s ease-in-out calc(var(--delay) + 0.6s) 2 both,
-    pv-ear-right 0.4s ease-in-out calc(var(--delay) + 4.1s) 2 forwards;
-}
-
-.pv-logo[data-animated="true"] .pv-symbol-eyes {
-  animation: pv-move-eye 0.4s ease-in-out calc(var(--delay) + 2s) both;
-}
-
-.pv-logo[data-animated="true"] .pv-symbol-eye {
-  animation: pv-blink 0.4s ease-in-out calc(var(--delay) + 4.2s) forwards;
-}
-
-/* 右から転がってくる文字を、入場前は白いカバーで隠す */
-.pv-logo[data-animated="true"] .pv-logo-typo::after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: -50%;
-  right: 0;
-  width: 106%;
-  height: 200%;
-  background: var(--bg-surface);
-  transform: translateX(106%);
-}
-
-.pv-logo[data-animated="true"] .pv-typo-letter {
-  animation: pv-rolling 1.6s ease-in-out both;
-}
-
-.pv-logo[data-animated="true"] .pv-typo-letter:nth-child(1) { animation-delay: calc(var(--delay) + 2.1s); }
-.pv-logo[data-animated="true"] .pv-typo-letter:nth-child(2) { animation-delay: calc(var(--delay) + 2.15s); }
-.pv-logo[data-animated="true"] .pv-typo-letter:nth-child(3) { animation-delay: calc(var(--delay) + 2.2s); }
-.pv-logo[data-animated="true"] .pv-typo-letter:nth-child(4) { animation-delay: calc(var(--delay) + 2.25s); }
-.pv-logo[data-animated="true"] .pv-typo-letter:nth-child(5) { animation-delay: calc(var(--delay) + 2.3s); }
-.pv-logo[data-animated="true"] .pv-typo-letter:nth-child(6) { animation-delay: calc(var(--delay) + 2.35s); }
-
-.pv-logo[data-animated="true"] .pv-heart {
-  animation: pv-scale-in 0.4s ease-in-out calc(var(--d) + var(--delay)) both;
-}
-
-.pv-logo[data-animated="true"] .pv-heart::before,
-.pv-logo[data-animated="true"] .pv-heart::after {
-  animation: pv-heart-height 0.4s ease-in-out calc(var(--d) + var(--delay) + 0.2s) both;
-}
-
-.pv-concept-wrap {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 403px;
-  height: 31.5px;
-  border-radius: 999px;
-  overflow: hidden;
-  transform: translate(-50%, 0);
-  animation:
-    pv-concept-width 1s ease-in-out 0.2s both,
-    pv-concept-move1 0.6s ease-in-out 1.2s forwards,
-    pv-concept-move2 0.6s ease-in-out 2.4s forwards;
 }
 
 .pv-concept {
   display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 403px;
-  height: 31.5px;
-}
-
-@keyframes pv-move1 {
-  from, to { top: 0; }
-  50% { top: -15px; }
-  from { transform: translateX(120%); }
-  to { transform: translateX(80%); }
-}
-
-@keyframes pv-move2 {
-  from, to { top: 0; }
-  50% { top: -12px; }
-  from { transform: translateX(80%); }
-  to { transform: translateX(40%); }
-}
-
-@keyframes pv-move3 {
-  from, to { top: 0; }
-  50% { top: -10px; }
-  from { transform: translateX(40%); }
-  to { transform: translateX(0%); }
-}
-
-@keyframes pv-standby {
-  from, to { transform: scale(1, 1); }
-  50% { transform: scale(1.02, 1.035); }
-  75% { transform: scale(0.975, 0.95); }
-}
-
-@keyframes pv-down {
-  from, to { transform: scale(1, 1); }
-  50% { transform: scale(1.06, 0.94); }
-}
-
-@keyframes pv-popup {
-  from { transform: translateY(100px); }
-  60% { transform: translateY(40px); }
-  to { transform: translateY(47px); }
-}
-
-@keyframes pv-popup2 {
-  from { transform: translateY(47px); }
-  to { transform: translateY(0px); }
-}
-
-@keyframes pv-ear-left {
-  from, to { transform: rotate(0deg); }
-  50% { transform: rotate(20deg); }
-}
-
-@keyframes pv-ear-right {
-  from, to { transform: rotate(0deg); }
-  50% { transform: rotate(-20deg); }
-}
-
-@keyframes pv-move-eye {
-  from { transform: translateX(0); }
-  to { transform: translateX(-7px); }
-}
-
-@keyframes pv-blink {
-  from, to { transform: scaleY(1); }
-  50% { transform: scaleY(0.2); }
-}
-
-@keyframes pv-rolling {
-  from { transform: translateX(245px) rotate(2turn); }
-  80% { transform: translateX(-7px) rotate(-7deg); }
-  to { transform: translateX(0) rotate(0deg); }
-}
-
-@keyframes pv-scale-in {
-  from { transform: scale(0); }
-  60% { transform: scale(1.1); }
-  to { transform: scale(1); }
-}
-
-@keyframes pv-heart-height {
-  from { height: 100%; }
-  50% { height: 160%; }
-  to { height: 150%; }
-}
-
-@keyframes pv-concept-width {
-  from { width: 0px; }
-  60% { width: 408px; }
-  to { width: 403px; }
-}
-
-@keyframes pv-concept-move1 {
-  from { transform: translate(-50%, 0); }
-  60% { transform: translate(-50%, 100%); }
-  to { transform: translate(-50%, 94%); }
-}
-
-@keyframes pv-concept-move2 {
-  from { transform: translate(-50%, 95%); }
-  60% { transform: translate(-50%, 166%); }
-  to { transform: translate(-50%, 160%); }
+  width: 320px;
+  max-width: calc(100% - 48px);
 }
 
 .pv-kicker {
@@ -630,6 +412,10 @@ body {
   .pv-hero-logo,
   .pv-footer-logo {
     --logo-scale: 0.61;
+  }
+
+  .pv-concept {
+    width: 260px;
   }
 
   .pv-tabs {
