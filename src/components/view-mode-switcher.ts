@@ -5,7 +5,7 @@ import { icon, type IconName } from "./icons";
 
 // インジケーターの移動量。CSS の grid-template-columns と揃える。
 const DEFAULT_BUTTON_WIDTH = 60;
-const COMPACT_BUTTON_WIDTH = 48;
+const COMPACT_BUTTON_WIDTH = 42;
 
 interface ModeEntry {
   mode: LayoutMode;

@@ -91,8 +91,8 @@ export const viewModeSwitcherStyles = `
   position: relative;
   top: auto;
   right: auto;
-  grid-template-columns: repeat(3, 48px);
-  width: 144px;
+  grid-template-columns: repeat(3, 42px);
+  width: 126px;
   border-radius: 12px;
   background: var(--comimi-surface-2);
   box-shadow: none;
@@ -103,7 +103,7 @@ export const viewModeSwitcherStyles = `
 }
 
 .comimi-view-switcher[data-compact="true"] .comimi-view-switcher-indicator {
-  width: 48px;
+  width: 42px;
   border-radius: 12px;
 }
 
