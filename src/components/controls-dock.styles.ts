@@ -540,5 +540,9 @@ export const controlsDockStyles = `
   .comimi-controls-bg {
     border-radius: 20px 20px 0 0;
   }
+
+  .comimi-autoplay-progress {
+    width: 80px;
+  }
 }
 `;
