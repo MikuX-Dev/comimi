@@ -37,14 +37,17 @@ export function renderSymbol(): SVGSVGElement {
   svg.append(path(SYMBOL_EARS[0], "pv-symbol-stroke pv-symbol-ear pv-symbol-ear-left"));
   svg.append(path(SYMBOL_EARS[1], "pv-symbol-stroke pv-symbol-ear pv-symbol-ear-right"));
   svg.append(path(SYMBOL_BODY, "pv-symbol-body"));
+  const eyes = document.createElementNS(SVG_NS, "g");
+  eyes.setAttribute("class", "pv-symbol-eyes");
   for (const cx of ["40.17", "71.58"]) {
     const eye = document.createElementNS(SVG_NS, "circle");
     eye.setAttribute("class", "pv-symbol-eye");
     eye.setAttribute("cx", cx);
     eye.setAttribute("cy", "78.21");
     eye.setAttribute("r", "6");
-    svg.append(eye);
+    eyes.append(eye);
   }
+  svg.append(eyes);
   return svg;
 }
 

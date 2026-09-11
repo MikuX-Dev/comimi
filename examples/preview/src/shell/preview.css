@@ -101,12 +101,12 @@ body {
 
 .pv-logo[data-tone="dark"] {
   --logo-ink: #000;
-  --logo-eye: #fff;
+  --logo-body: #fff;
 }
 
 .pv-logo[data-tone="light"] {
   --logo-ink: #fff;
-  --logo-eye: #e0e0e0;
+  --logo-body: var(--bg-footer);
 }
 
 .pv-logo-symbol {
@@ -143,11 +143,15 @@ body {
 }
 
 .pv-symbol-body {
-  fill: var(--logo-ink);
+  fill: var(--logo-body);
+}
+
+.pv-symbol-eyes {
+  transform: translateX(-7px);
 }
 
 .pv-symbol-eye {
-  fill: var(--logo-eye);
+  fill: var(--logo-ink);
   transform-box: fill-box;
   transform-origin: center;
 }
