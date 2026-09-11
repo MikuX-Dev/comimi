@@ -121,18 +121,13 @@ function renderHero(): HTMLElement {
   const logoLink = document.createElement("a");
   logoLink.className = "pv-hero-logo";
   logoLink.href = "./";
-  logoLink.append(renderLogo("dark"));
-
-  const concept = document.createElement("img");
-  concept.className = "pv-concept";
-  concept.src = conceptSrc;
-  concept.alt = "comimiは、オープンソースな漫画ビューワーです。";
+  logoLink.append(renderLogo("dark", { animated: true, conceptSrc }));
 
   const kicker = document.createElement("p");
   kicker.className = "pv-kicker";
   kicker.textContent = "Preview";
 
-  hero.append(logoLink, concept, kicker);
+  hero.append(logoLink, kicker);
   return hero;
 }
 
@@ -195,9 +190,12 @@ function renderFooter(): HTMLElement {
   const footer = document.createElement("footer");
   footer.className = "pv-footer";
 
+  // 本家の LoopLogo と同じく 1.6 秒ごとに作り直して耳の揺れと瞬きを繰り返す。
   const logo = document.createElement("div");
   logo.className = "pv-footer-logo";
-  logo.append(renderLogo("light"));
+  const mountLogo = () => logo.replaceChildren(renderLogo("light"));
+  mountLogo();
+  window.setInterval(mountLogo, 1600);
 
   const copyright = document.createElement("div");
   copyright.className = "pv-copyright";
