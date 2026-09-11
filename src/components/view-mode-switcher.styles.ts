@@ -108,17 +108,17 @@ export const viewModeSwitcherStyles = `
 }
 
 .comimi-view-switcher[data-compact="true"] .comimi-view-switcher-button {
-  row-gap: 3px;
-  height: 44px;
+  row-gap: 0;
+  height: 36px;
 }
 
 .comimi-view-switcher[data-compact="true"] .comimi-view-switcher-icon-wrap {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .comimi-view-switcher[data-compact="true"] .comimi-view-switcher-label {
-  font-size: 9px;
+  display: none;
 }
 
 @media (min-width: 768px) {
