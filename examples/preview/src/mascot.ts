@@ -1,27 +1,8 @@
 import { createMangaViewer, type MangaPage } from "../../../src";
+import { loadSampleImagePages } from "./shell/sample-pages";
+import { mountPreviewShell } from "./shell/shell";
 
-const sampleImages = import.meta.glob("../sample-comic/*.webp", {
-  eager: true,
-  query: "?url",
-  import: "default"
-}) as Record<string, string>;
-
-const imagePages: MangaPage[] = Object.entries(sampleImages)
-  .map(([path, url]) => {
-    const match = path.match(/\/(\d+)\.webp$/);
-    if (!match) {
-      return null;
-    }
-    return { index: Number(match[1]), url };
-  })
-  .filter((entry): entry is { index: number; url: string } => entry !== null)
-  .sort((a, b) => a.index - b.index)
-  .map(({ index, url }) => ({
-    id: `p${index}`,
-    type: "image",
-    src: url,
-    alt: `Page ${index + 1}`
-  }));
+const imagePages: MangaPage[] = loadSampleImagePages();
 
 const CAT_SVG = `
 <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -39,10 +20,7 @@ const CAT_SVG = `
 </svg>
 `.trim();
 
-const container = document.querySelector<HTMLElement>("#viewer");
-if (!container) {
-  throw new Error("Viewer container not found");
-}
+const container = mountPreviewShell("mascot");
 
 createMangaViewer(container, {
   manga: {
