@@ -318,180 +318,18 @@ body {
   position: relative;
 }
 
-/* --- Content ------------------------------------------------------- */
-.pv-content {
-  position: relative;
-  margin-top: -1px;
-  padding: 40px 24px 80px;
-  background: var(--bg-section);
-}
-
-.pv-card {
-  box-sizing: border-box;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 28px;
-  background: var(--bg-surface);
-  border-radius: 20px;
-  box-shadow: var(--shadow-default);
-}
-
-.pv-card-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.pv-card-title {
-  margin: 0;
-  color: var(--fg-default);
-  font: var(--text-l-bold);
-}
-
-.pv-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.pv-badge {
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--bg-inset);
-  color: var(--fg-muted);
-  font: bold 12px/20px var(--font-mono);
-}
-
-.pv-card-text {
-  margin: 0;
-  color: var(--fg-default);
-  font: var(--text-s);
-}
-
-.pv-steps-heading {
-  margin-top: 16px;
-  color: var(--fg-default);
-  font: var(--text-s-bold);
-}
-
-.pv-steps {
-  display: grid;
-  row-gap: 4px;
-  margin: 6px 0 0;
-  padding-left: 22px;
-  color: var(--fg-default);
-  font: var(--text-s);
-}
-
-.pv-notice {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 6px;
-  align-items: start;
-  margin: 16px 0 0;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--bg-canvas);
-  color: var(--fg-subtle);
-  font: var(--text-xs);
-}
-
-.pv-notice-icon {
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
-}
-
-.pv-actions {
-  display: grid;
-  justify-items: center;
-  row-gap: 24px;
-  margin-top: 40px;
-}
-
-.pv-command {
-  padding: 0 50px;
-  border-radius: 20px;
-  background: var(--bg-surface);
-  color: var(--fg-default);
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 55px;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-
-.pv-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
-}
-
-.pv-button {
-  position: relative;
-  display: block;
-  border-radius: 999px;
-  background: var(--bg);
-  color: var(--color);
-  text-decoration: none;
-  outline: none;
-}
-
-.pv-button[data-variant="primary"] {
-  --color: var(--fg-on-emphasis);
-  --bg: var(--bg-emphasis);
-  --border: 0;
-}
-
-.pv-button[data-variant="secondary"] {
-  --color: var(--fg-default);
-  --bg: var(--bg-surface);
-  --border: 3px solid var(--border-default);
-}
-
-.pv-button-bg {
-  box-sizing: border-box;
-  position: absolute;
-  inset: 0;
-  border: var(--border);
-  border-radius: inherit;
-  background: inherit;
-  transition: inset 0.36s var(--spring);
-}
-
-@media (hover: hover) {
-  .pv-button:hover .pv-button-bg {
-    inset: -3px;
-  }
-}
-
-.pv-button:focus-visible .pv-button-bg {
-  outline: 2px solid var(--border-default);
-  outline-offset: 2px;
-}
-
-.pv-button-inner {
-  position: relative;
-  display: block;
-  padding: 10px 32px;
-  font: var(--text-s-bold);
-}
-
 /* --- Footer -------------------------------------------------------- */
 .pv-footer {
   position: relative;
-  padding: 65px 24px 50px;
+  margin-top: -1px;
+  padding: 125px 24px 50px;
   background: var(--bg-section);
 }
 
 .pv-footer::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 60px 0 0;
   background: var(--bg-footer);
   border-radius: var(--section-radius) var(--section-radius) 0 0;
 }
@@ -579,26 +417,6 @@ body {
 
   .pv-stage {
     margin-top: 20px;
-  }
-
-  .pv-content {
-    padding: 32px 16px 60px;
-  }
-
-  .pv-card {
-    padding: 20px;
-    border-radius: 16px;
-  }
-
-  .pv-card-title {
-    font: var(--text-m-bold);
-  }
-
-  .pv-command {
-    padding: 0 28px;
-    border-radius: 14px;
-    font-size: 14px;
-    line-height: 40px;
   }
 
   .pv-footer-logo {
