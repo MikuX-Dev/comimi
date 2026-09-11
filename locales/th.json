@@ -43,6 +43,7 @@
   "shortcut.moveRight": "เลื่อนขวา",
   "shortcut.autoPageTurnLabel": "เล่นอัตโนมัติ",
   "shortcut.pageModeToggle": "สลับสองหน้า",
+  "shortcut.coverToggle": "สลับหน้าปก",
   "shortcut.overlayToggle": "สลับโอเวอร์เลย์",
   "seek.previewAlt": "ตัวอย่างหน้า {{page}}",
   "loading": "กำลังโหลด",

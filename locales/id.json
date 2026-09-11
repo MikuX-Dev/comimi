@@ -43,6 +43,7 @@
   "shortcut.moveRight": "Geser kanan",
   "shortcut.autoPageTurnLabel": "Putar otomatis",
   "shortcut.pageModeToggle": "Alih dua halaman",
+  "shortcut.coverToggle": "Ganti sampul",
   "shortcut.overlayToggle": "Alih overlay",
   "seek.previewAlt": "Pratinjau halaman {{page}}",
   "loading": "Memuat",

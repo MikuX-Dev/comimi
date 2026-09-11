@@ -375,6 +375,7 @@ export class MenuPanel {
           [["O"], "shortcut.overlayToggle"],
           [["M"], "overlay.menu"],
           [["P"], "shortcut.pageModeToggle"],
+          [["C"], "shortcut.coverToggle"],
           [["S"], "overlay.settings"]
         ],
         true

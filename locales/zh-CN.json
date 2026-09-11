@@ -43,6 +43,7 @@
   "shortcut.moveRight": "向右移动",
   "shortcut.autoPageTurnLabel": "自动播放",
   "shortcut.pageModeToggle": "切换跨页",
+  "shortcut.coverToggle": "切换封面",
   "shortcut.overlayToggle": "切换控制层",
   "seek.previewAlt": "第 {{page}} 页预览",
   "loading": "加载中",
