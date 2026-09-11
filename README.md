@@ -41,6 +41,16 @@ createMangaViewer(document.querySelector("#viewer")!, {
 
 APIの詳細、オプション、設定、キーボードショートカット、永続化、i18n については [`docs/USAGE.md`](./docs/USAGE.md) に記載しています。
 
+## 開発・プレビュー
+
+```bash
+npm run dev            # examples/preview を開発サーバーで起動
+npm run build          # ライブラリ本体を dist/ にビルド
+npm run build:preview  # examples/preview を静的サイトとして dist-preview/ にビルド
+```
+
+`dist-preview/` は Cloudflare Pages などの静的ホスティングにそのまま配置できます（ビルドコマンド `npm run build:preview`、出力ディレクトリ `dist-preview`）。
+
 ## ライセンス
 
 MIT

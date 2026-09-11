@@ -86,11 +86,50 @@ export const viewModeSwitcherStyles = `
   transition: color 0.2s linear;
 }
 
+/* コントロールドック内に置くコンパクト版（モバイル幅のみ表示） */
+.comimi-view-switcher[data-compact="true"] {
+  position: relative;
+  top: auto;
+  right: auto;
+  grid-template-columns: repeat(3, 42px);
+  width: 126px;
+  border-radius: 12px;
+  background: var(--comimi-surface-2);
+  box-shadow: none;
+  backdrop-filter: none;
+  transform: none;
+  opacity: 1;
+  transition: none;
+}
+
+.comimi-view-switcher[data-compact="true"] .comimi-view-switcher-indicator {
+  width: 42px;
+  border-radius: 12px;
+}
+
+.comimi-view-switcher[data-compact="true"] .comimi-view-switcher-button {
+  row-gap: 0;
+  height: 36px;
+}
+
+.comimi-view-switcher[data-compact="true"] .comimi-view-switcher-icon-wrap {
+  width: 18px;
+  height: 18px;
+}
+
+.comimi-view-switcher[data-compact="true"] .comimi-view-switcher-label {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .comimi-view-switcher[data-compact="true"] {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
-  .comimi-view-switcher {
-    top: 70px;
-    right: auto;
-    left: calc(50% - 90px);
+  .comimi-view-switcher:not([data-compact="true"]) {
+    display: none;
   }
 }
 `;

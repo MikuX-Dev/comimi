@@ -18,5 +18,5 @@
     "declarationMap": true,
     "outDir": "dist"
   },
-  "include": ["src", "examples/preview/src", "vite.config.ts"]
+  "include": ["src", "examples/preview/src", "vite.config.ts", "vite.preview.config.ts"]
 }

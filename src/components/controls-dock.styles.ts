@@ -44,8 +44,14 @@ export const controlsDockStyles = `
 .comimi-controls-row {
   position: relative;
   display: grid;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   justify-content: space-between;
+  align-items: center;
+}
+
+.comimi-controls-center {
+  display: grid;
+  justify-content: center;
   align-items: center;
 }
 
@@ -533,6 +539,10 @@ export const controlsDockStyles = `
 
   .comimi-controls-bg {
     border-radius: 20px 20px 0 0;
+  }
+
+  .comimi-autoplay-progress {
+    width: 80px;
   }
 }
 `;

@@ -569,6 +569,13 @@ export class MangaViewerCore implements MangaViewerInstance {
                 : "spread"
           });
           break;
+        case "c":
+        case "C":
+          event.preventDefault();
+          void this.updateSettings({
+            hasCover: !this.store.getState().settings.hasCover
+          });
+          break;
         case "o":
         case "O":
           event.preventDefault();

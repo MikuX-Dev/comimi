@@ -43,6 +43,7 @@
   "shortcut.moveRight": "오른쪽으로 이동",
   "shortcut.autoPageTurnLabel": "자동 재생",
   "shortcut.pageModeToggle": "양면 보기 전환",
+  "shortcut.coverToggle": "표지 전환",
   "shortcut.overlayToggle": "오버레이 전환",
   "seek.previewAlt": "{{page}}페이지 미리보기",
   "loading": "로딩 중",

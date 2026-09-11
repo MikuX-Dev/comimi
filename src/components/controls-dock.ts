@@ -11,6 +11,7 @@ import { icon, type IconName } from "./icons";
 import { getPageIndexesForPageIndex } from "./page-layout";
 import { renderRabbitMascot } from "./rabbit-mascot";
 import { SettingsPanel } from "./settings-panel";
+import { ViewModeSwitcher } from "./view-mode-switcher";
 
 export class ControlsDock {
   private root: HTMLDivElement;
@@ -48,13 +49,16 @@ export class ControlsDock {
   private settingsIcon!: SVGSVGElement | HTMLElement;
   private settingsTooltip!: HTMLSpanElement;
 
+  private viewModeSwitcher?: ViewModeSwitcher;
+
   private prevPageTurnMode?: PageTurnMode;
 
   constructor(
     private callbacks: RendererCallbacks,
     private i18n: I18n,
     private mascot?: MascotOption,
-    private hidden: ReadonlySet<HideableControl> = new Set()
+    private hidden: ReadonlySet<HideableControl> = new Set(),
+    private lockLayoutMode = false
   ) {
     this.root = document.createElement("div");
     this.root.className = "comimi-controls-dock";
@@ -145,6 +149,8 @@ export class ControlsDock {
     this.settingsTooltip.textContent = settingsLabel;
     this.settingsContainer.dataset.open = String(state.panel === "settings");
     this.settings.update(state);
+
+    this.viewModeSwitcher?.update(state);
 
     this.prevPageTurnMode = state.settings.pageTurnMode;
   }
@@ -280,8 +286,21 @@ export class ControlsDock {
     if (this.hidden.has("autoplay")) {
       autoplay.dataset.comimiHidden = "true";
     }
-    row.append(autoplay, this.buildSide());
+    row.append(autoplay, this.buildCenter(), this.buildSide());
     return row;
+  }
+
+  // モバイル幅では上部のレイアウト切替を出さず、ドック中央にコンパクト版を置く。
+  private buildCenter(): HTMLDivElement {
+    const center = document.createElement("div");
+    center.className = "comimi-controls-center";
+    if (!this.lockLayoutMode && !this.hidden.has("viewMode")) {
+      this.viewModeSwitcher = new ViewModeSwitcher(this.callbacks, this.i18n, {
+        compact: true
+      });
+      center.append(this.viewModeSwitcher.getElement());
+    }
+    return center;
   }
 
   private buildAutoplay(): HTMLDivElement {
