@@ -38,6 +38,12 @@ interface DragStart {
 }
 
 const PAGE_TURN_ANIMATION_MS = 180;
+// ホイール／ピンチの deltaY 1px あたりのズーム量（指数）。
+// トラックパッドのピンチは小さな deltaY が連続で届くため、量に比例させて滑らかにする。
+const WHEEL_ZOOM_SENSITIVITY = 0.01;
+// deltaMode がピクセル以外のときの換算値。
+const WHEEL_LINE_HEIGHT_PX = 16;
+const WHEEL_PAGE_HEIGHT_PX = 400;
 const SPLASH_DURATION_MS = 1400;
 
 // スワイプ（ページめくり）を開始させない要素。
@@ -620,9 +626,20 @@ export class ViewerRenderer {
       const basePanX = sameTarget ? state.panX : 0;
       const basePanY = sameTarget ? state.panY : 0;
 
-      const delta =
-        event.deltaY > 0 ? -state.settings.zoom.step : state.settings.zoom.step;
-      const nextScale = clampZoom(baseScale + delta, state.settings.zoom);
+      // 1 イベントあたりの倍率変化は zoom.step を上限にクランプする。
+      // マウスホイール（deltaY ≒ 100）は 1 ノッチで従来の step 相当になる。
+      const maxFactor = 1 + state.settings.zoom.step;
+      const factor = Math.min(
+        Math.max(
+          Math.exp(-normalizeWheelDelta(event) * WHEEL_ZOOM_SENSITIVITY),
+          1 / maxFactor
+        ),
+        maxFactor
+      );
+      const nextScale = clampZoom(baseScale * factor, state.settings.zoom);
+      if (nextScale === baseScale) {
+        return;
+      }
 
       // カーソル直下の点を固定したままズームする（カーソル中心ズーム）。
       // transform-origin はスロット中心なので、スロット中心からの相対座標で計算。
@@ -946,6 +963,17 @@ function matchesSelector(
   selector: string
 ): boolean {
   return target instanceof Element && target.closest(selector) !== null;
+}
+
+function normalizeWheelDelta(event: WheelEvent): number {
+  switch (event.deltaMode) {
+    case WheelEvent.DOM_DELTA_LINE:
+      return event.deltaY * WHEEL_LINE_HEIGHT_PX;
+    case WheelEvent.DOM_DELTA_PAGE:
+      return event.deltaY * WHEEL_PAGE_HEIGHT_PX;
+    default:
+      return event.deltaY;
+  }
 }
 
 function touchDistance(event: TouchEvent): number {
