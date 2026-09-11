@@ -31,6 +31,7 @@
   "scripts": {
     "dev": "vite examples/preview --host 0.0.0.0",
     "build": "tsc --noEmit && vite build && tsc -p tsconfig.build.json",
+    "build:preview": "vite build --config vite.preview.config.ts",
     "preview": "vite preview examples/preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
