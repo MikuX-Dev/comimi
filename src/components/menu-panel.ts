@@ -460,11 +460,11 @@ export class MenuPanel {
 
     const grid = document.createElement("div");
     grid.className = "comimi-page-list-grid";
-    inner.append(grid);
+    inner.append(head.root, grid);
 
     bindScrollFade(inner);
 
-    view.append(head.root, inner, this.renderBackButton());
+    view.append(inner, this.renderBackButton());
     return [view, grid, head];
   }
 

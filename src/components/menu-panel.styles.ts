@@ -230,9 +230,7 @@ export const menuPanelStyles = `
   grid-template-columns: auto 1fr;
   column-gap: 14px;
   align-items: center;
-  box-sizing: border-box;
-  height: 86px;
-  padding: 16px 22px 0;
+  padding: 16px 6px 0;
 }
 
 .comimi-page-list-cover {
@@ -761,10 +759,7 @@ export const menuPanelStyles = `
     width: 100%;
   }
 
-  .comimi-page-list-inner {
-    max-height: calc(var(--view-height, 100vh) - 62px - 86px - 56px);
-  }
-
+  .comimi-page-list-inner,
   .comimi-shortcut-inner {
     max-height: calc(var(--view-height, 100vh) - 62px - 56px);
   }
