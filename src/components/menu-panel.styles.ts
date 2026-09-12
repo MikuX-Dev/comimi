@@ -230,7 +230,7 @@ export const menuPanelStyles = `
   grid-template-columns: auto 1fr;
   column-gap: 14px;
   align-items: center;
-  padding: 16px 6px 0;
+  padding: 0 6px;
 }
 
 .comimi-page-list-cover {
