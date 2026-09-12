@@ -1,5 +1,6 @@
 import { arrowButtonsStyles } from "../components/arrow-buttons.styles";
 import { centerMessageStyles } from "../components/center-message.styles";
+import { comimiLogoStyles } from "../components/comimi-logo.styles";
 import { controlsDockStyles } from "../components/controls-dock.styles";
 import { errorIconStyles } from "../components/error-icon.styles";
 import { iconStyles } from "../components/icons.styles";
@@ -36,6 +37,7 @@ const viewerStyles = [
   menuPanelStyles,
   notificationsStyles,
   rabbitMascotStyles,
+  comimiLogoStyles,
   splashScreenStyles,
   scrollFadeStyles
 ].join("\n");

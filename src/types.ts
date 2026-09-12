@@ -96,18 +96,20 @@ export interface ViewerState {
   zoomScale: number;
   panX: number;
   panY: number;
-  /**
-   * ズーム対象のページ index。見開き時にカーソルが当たっているページだけを
-   * ズームするために使う。null のときは全ページに適用（ピンチ等の従来挙動）。
-   */
-  zoomPageIndex: number | null;
   settings: ViewerSettings;
   layout: {
     mode: LayoutMode;
     wideHeightPx?: number;
   };
   notifications: ViewerNotification[];
-  panel: "none" | "settings" | "menu" | "pages" | "shortcuts" | "share";
+  panel:
+    | "none"
+    | "settings"
+    | "menu"
+    | "pages"
+    | "shortcuts"
+    | "share"
+    | "about";
 }
 
 export type TranslationMap = Record<string, string>;
@@ -232,13 +234,7 @@ export type ViewerAction =
   | { type: "updateSettings"; settings: Partial<ViewerSettings> }
   | { type: "setLayoutMode"; layoutMode: LayoutMode }
   | { type: "setWideHeight"; heightPx: number }
-  | {
-      type: "setZoom";
-      scale: number;
-      panX?: number;
-      panY?: number;
-      pageIndex?: number | null;
-    }
+  | { type: "setZoom"; scale: number; panX?: number; panY?: number }
   | { type: "setPan"; panX: number; panY: number }
   | { type: "resetZoom" }
   | { type: "setPanel"; panel: ViewerState["panel"] }

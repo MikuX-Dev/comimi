@@ -7,7 +7,6 @@ import { renderMoveDirectionGuide } from "../components/move-direction-guide";
 import { ViewModeSwitcher } from "../components/view-mode-switcher";
 import {
   getAdjacentPageIndexes,
-  getDisplayedPageIndexes,
   getPageGroupSide,
   isSwipeToNext,
   type AdjacentDirection
@@ -488,21 +487,13 @@ export class ViewerRenderer {
   private clampPan(
     panX: number,
     panY: number,
-    scale: number,
-    state: ViewerState
+    scale: number
   ): { x: number; y: number } {
     if (scale <= 1) {
       return { x: 0, y: 0 };
     }
-    const isMobile = this.isMobileViewport();
-    const indexes = getDisplayedPageIndexes(state, isMobile);
-    const isSpread = indexes.length > 1;
-    const slotWidth = isSpread
-      ? this.root.offsetWidth / 2
-      : this.root.offsetWidth;
-    const slotHeight = this.root.offsetHeight;
-    const maxX = (slotWidth * (scale - 1)) / 2;
-    const maxY = (slotHeight * (scale - 1)) / 2;
+    const maxX = (this.root.offsetWidth * (scale - 1)) / 2;
+    const maxY = (this.root.offsetHeight * (scale - 1)) / 2;
     return {
       x: Math.min(Math.max(panX, -maxX), maxX),
       y: Math.min(Math.max(panY, -maxY), maxY)
@@ -605,26 +596,9 @@ export class ViewerRenderer {
 
       event.preventDefault();
 
-      // カーソルが乗っているページ（スロット）を特定する。
-      // 見開きでは左右どちらか一方だけがズーム対象になる。
-      const slot =
-        event.target instanceof Element
-          ? event.target.closest<HTMLElement>(".comimi-page")
-          : null;
-      if (!slot) {
-        return;
-      }
-      const pageIndex = Number(slot.dataset.pageIndex);
-      if (Number.isNaN(pageIndex)) {
-        return;
-      }
-
-      // 対象ページが変わったら、そのページは等倍から開始する
-      // （直前に別ページをズームしていてもその状態は引き継がない）。
-      const sameTarget = state.zoomPageIndex === pageIndex;
-      const baseScale = sameTarget ? state.zoomScale : 1;
-      const basePanX = sameTarget ? state.panX : 0;
-      const basePanY = sameTarget ? state.panY : 0;
+      const baseScale = state.zoomScale;
+      const basePanX = state.panX;
+      const basePanY = state.panY;
 
       // 1 イベントあたりの倍率変化は zoom.step を上限にクランプする。
       // マウスホイール（deltaY ≒ 100）は 1 ノッチで従来の step 相当になる。
@@ -642,22 +616,17 @@ export class ViewerRenderer {
       }
 
       // カーソル直下の点を固定したままズームする（カーソル中心ズーム）。
-      // transform-origin はスロット中心なので、スロット中心からの相対座標で計算。
+      // 見開きは 2 ページをひとまとまりとして、ステージ中心を原点に拡大する。
       // pan' = pan * r + (cursor - center) * (1 - r)  （r = nextScale / baseScale）
-      const rect = slot.getBoundingClientRect();
+      const rect = this.root.getBoundingClientRect();
       const cursorX = event.clientX - (rect.left + rect.width / 2);
       const cursorY = event.clientY - (rect.top + rect.height / 2);
-      const ratio = baseScale === 0 ? 1 : nextScale / baseScale;
+      const ratio = nextScale / baseScale;
       const panX = basePanX * ratio + cursorX * (1 - ratio);
       const panY = basePanY * ratio + cursorY * (1 - ratio);
 
-      const clampedPan = this.clampPan(panX, panY, nextScale, state);
-      this.callbacks.setZoom(
-        nextScale,
-        clampedPan.x,
-        clampedPan.y,
-        pageIndex
-      );
+      const clampedPan = this.clampPan(panX, panY, nextScale);
+      this.callbacks.setZoom(nextScale, clampedPan.x, clampedPan.y);
     };
     const onMouseDown = (event: MouseEvent) => {
       // 新しいジェスチャの開始時に、前回の操作で立った抑止フラグを必ず解放する。
@@ -740,12 +709,7 @@ export class ViewerRenderer {
           this.pinchStart.scale *
           (touchDistance(event) / this.pinchStart.distance);
         const nextScale = clampZoom(requested, state.settings.zoom);
-        const clampedPan = this.clampPan(
-          state.panX,
-          state.panY,
-          nextScale,
-          state
-        );
+        const clampedPan = this.clampPan(state.panX, state.panY, nextScale);
         this.callbacks.setZoom(nextScale, clampedPan.x, clampedPan.y);
         return;
       }
@@ -841,8 +805,7 @@ export class ViewerRenderer {
     const clamped = this.clampPan(
       start.panX + deltaX,
       start.panY + deltaY,
-      state.zoomScale,
-      state
+      state.zoomScale
     );
     this.callbacks.setPan(clamped.x, clamped.y);
   }

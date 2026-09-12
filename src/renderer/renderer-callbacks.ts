@@ -12,12 +12,7 @@ export interface RendererCallbacks {
   setLayoutMode(layoutMode: LayoutMode): void;
   setWideHeight(heightPx: number): void;
   setPanel(panel: ViewerState["panel"]): void;
-  setZoom(
-    scale: number,
-    panX?: number,
-    panY?: number,
-    pageIndex?: number | null
-  ): void;
+  setZoom(scale: number, panX?: number, panY?: number): void;
   setPan(panX: number, panY: number): void;
   resetZoom(): void;
   notify(message: string, tone?: "info" | "success" | "error"): void;
