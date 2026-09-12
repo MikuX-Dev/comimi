@@ -35,6 +35,13 @@ const PER_MANGA_SETTING_KEYS = [
 ] as const;
 type PerMangaSettingKey = (typeof PER_MANGA_SETTING_KEYS)[number];
 
+const LAYOUT_LABEL_KEYS: Record<LayoutMode, string> = {
+  inline: "layout.inline",
+  wide: "layout.wide",
+  browserFullscreen: "layout.browserFullscreen",
+  nativeFullscreen: "layout.browserFullscreen"
+};
+
 // 操作が無いままこの時間が経過するとオーバーレイを自動で閉じる。
 const OVERLAY_AUTO_HIDE_MS = 3000;
 // ビューワー内でこれらのイベントが起きたら「操作中」とみなしタイマーを延長する。
@@ -170,8 +177,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       setPanel: (panel) => {
         this.store.dispatch({ type: "setPanel", panel });
       },
-      setZoom: (scale, panX, panY, pageIndex) =>
-        this.store.dispatch({ type: "setZoom", scale, panX, panY, pageIndex }),
+      setZoom: (scale, panX, panY) =>
+        this.store.dispatch({ type: "setZoom", scale, panX, panY }),
       setPan: (panX, panY) => this.store.dispatch({ type: "setPan", panX, panY }),
       resetZoom: () => this.store.dispatch({ type: "resetZoom" }),
       notify: (message, tone) => this.notify(message, tone)
@@ -673,7 +680,11 @@ export class MangaViewerCore implements MangaViewerInstance {
       }
     }
 
+    const previousMode = this.store.getState().layout.mode;
     this.store.dispatch({ type: "setLayoutMode", layoutMode });
+    if (layoutMode !== previousMode) {
+      this.notify(this.i18n.t(LAYOUT_LABEL_KEYS[layoutMode]));
+    }
     await this.storage.saveSettings(
       stripPerMangaSettings(this.store.getState().settings)
     );

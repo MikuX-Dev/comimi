@@ -18,6 +18,7 @@ export const pageStageStyles = `
   justify-content: center;
   gap: 0;
   box-sizing: border-box;
+  transform-origin: center center;
 }
 
 .comimi-page {

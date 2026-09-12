@@ -170,7 +170,8 @@ export const menuPanelStyles = `
 .comimi-menu-panel[data-view="menu"] .comimi-menu-view-menu,
 .comimi-menu-panel[data-view="shortcut"] .comimi-menu-view-shortcut,
 .comimi-menu-panel[data-view="pageList"] .comimi-menu-view-page-list,
-.comimi-menu-panel[data-view="share"] .comimi-menu-view-share {
+.comimi-menu-panel[data-view="share"] .comimi-menu-view-share,
+.comimi-menu-panel[data-view="about"] .comimi-menu-view-about {
   opacity: 1;
   visibility: visible;
   transform: scale(1);
@@ -222,6 +223,72 @@ export const menuPanelStyles = `
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.comimi-page-list-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  align-items: center;
+  box-sizing: border-box;
+  height: 86px;
+  padding: 16px 22px 0;
+}
+
+.comimi-page-list-cover {
+  position: relative;
+  display: block;
+  width: 50px;
+  height: 70px;
+  border-radius: 6px;
+  background: var(--comimi-panel);
+  outline: 3px solid var(--comimi-line);
+  box-shadow: var(--comimi-shadow);
+  overflow: hidden;
+}
+
+.comimi-page-list-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.comimi-page-list-head-body {
+  display: grid;
+  row-gap: 2px;
+  min-width: 0;
+}
+
+.comimi-page-list-head-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--comimi-fg);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.comimi-page-list-head-author {
+  color: var(--comimi-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comimi-page-list-head-count {
+  color: var(--comimi-faint);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .comimi-page-list-inner {
@@ -461,6 +528,167 @@ export const menuPanelStyles = `
   white-space: nowrap;
 }
 
+.comimi-about-inner {
+  display: grid;
+  row-gap: 12px;
+  box-sizing: border-box;
+  padding: 16px 22px 4px;
+}
+
+.comimi-about-hero {
+  --comimi-about-hero-bg: var(--comimi-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 26px 0 22px;
+  border-radius: 12px;
+  background: var(--comimi-about-hero-bg);
+}
+
+.comimi-about-logo {
+  --comimi-about-logo-scale: 0.62;
+  width: calc(360px * var(--comimi-about-logo-scale));
+  height: calc(99px * var(--comimi-about-logo-scale));
+}
+
+.comimi-about-logo > .comimi-logo {
+  --comimi-logo-ink: var(--comimi-ink);
+  --comimi-logo-body: var(--comimi-about-hero-bg);
+  transform: scale(var(--comimi-about-logo-scale));
+  transform-origin: top left;
+}
+
+.comimi-root[data-theme="dark"] .comimi-about-logo > .comimi-logo {
+  --comimi-logo-ink: var(--comimi-white);
+}
+
+.comimi-about-logo .comimi-logo-mimi-left {
+  animation: comimi-about-mimi-left 4s ease-in-out 0.3s infinite;
+}
+
+.comimi-about-logo .comimi-logo-mimi-right {
+  animation: comimi-about-mimi-right 4s ease-in-out 0.3s infinite;
+}
+
+.comimi-about-logo .comimi-logo-eye {
+  animation: comimi-about-eye 4s ease-in-out 0.2s infinite;
+}
+
+.comimi-about-version {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 12px;
+  padding: 0 6px;
+}
+
+.comimi-about-version-label {
+  color: var(--comimi-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.comimi-about-version-value {
+  color: var(--comimi-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.comimi-about-links {
+  display: grid;
+  row-gap: 2px;
+  margin: 0 -8px;
+}
+
+.comimi-about-link {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  align-items: center;
+  padding: 8px 10px 8px 14px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.24s linear;
+}
+
+.comimi-about-link:hover {
+  background: var(--comimi-surface-3);
+}
+
+.comimi-about-link-text {
+  display: grid;
+  row-gap: 1px;
+  min-width: 0;
+}
+
+.comimi-about-link-label {
+  color: var(--comimi-fg);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.comimi-about-link-url {
+  color: var(--comimi-soft);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comimi-about-link-arrow {
+  display: block;
+  width: 20px;
+  height: 20px;
+  color: var(--comimi-faint);
+}
+
+.comimi-about-link-arrow > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes comimi-about-mimi-left {
+  0%, 20%, 100% {
+    transform: rotate(0deg);
+  }
+  5%, 15% {
+    transform: rotate(20deg);
+  }
+  10% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes comimi-about-mimi-right {
+  0%, 20%, 100% {
+    transform: rotate(0deg);
+  }
+  5%, 15% {
+    transform: rotate(-20deg);
+  }
+  10% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes comimi-about-eye {
+  0%, 10%, 100% {
+    transform: scaleY(1);
+  }
+  5% {
+    transform: scaleY(0.2);
+  }
+}
+
 .comimi-back-button {
   position: relative;
   width: 100%;
@@ -533,7 +761,10 @@ export const menuPanelStyles = `
     width: 100%;
   }
 
-  .comimi-page-list-inner,
+  .comimi-page-list-inner {
+    max-height: calc(var(--view-height, 100vh) - 62px - 86px - 56px);
+  }
+
   .comimi-shortcut-inner {
     max-height: calc(var(--view-height, 100vh) - 62px - 56px);
   }

@@ -1,6 +1,10 @@
 import { defineConfig } from "vite";
+import { version } from "./package.json";
 
 export default defineConfig({
+  define: {
+    __COMIMI_VERSION__: JSON.stringify(version)
+  },
   build: {
     lib: {
       entry: "src/index.ts",

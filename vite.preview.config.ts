@@ -1,9 +1,13 @@
 import { defineConfig } from "vite";
+import { version } from "./package.json";
 
 // examples/preview を静的サイトとしてビルドする設定（Cloudflare Pages 等での公開用）。
 // `npm run build:preview` でリポジトリ直下の dist-preview/ に出力する。
 export default defineConfig({
   root: "examples/preview",
+  define: {
+    __COMIMI_VERSION__: JSON.stringify(version)
+  },
   build: {
     outDir: "../../dist-preview",
     emptyOutDir: true,

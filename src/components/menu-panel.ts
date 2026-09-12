@@ -1,18 +1,25 @@
 import { I18n } from "../i18n/i18n";
 import type { MascotOption, ViewerState } from "../types";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
+import {
+  COMIMI_REPOSITORY_URL,
+  COMIMI_SITE_URL,
+  COMIMI_VERSION
+} from "../version";
+import { renderComimiLogo } from "./comimi-logo";
 import { icon } from "./icons";
 import { Checkbox } from "./inputs";
 import { renderRabbitMascot } from "./rabbit-mascot";
 import { bindScrollFade } from "./scroll-fade";
 
-type MenuView = "menu" | "shortcut" | "pageList" | "share";
+type MenuView = "menu" | "shortcut" | "pageList" | "share" | "about";
 
 const MENU_PANELS: ReadonlySet<ViewerState["panel"]> = new Set([
   "menu",
   "pages",
   "shortcuts",
-  "share"
+  "share",
+  "about"
 ]);
 
 /** メニューパネル（トップメニューとその配下ビュー）が開いている panel かどうか。 */
@@ -23,14 +30,24 @@ export function isMenuPanel(panel: ViewerState["panel"]): boolean {
 const MENU_VIEWS: Partial<Record<ViewerState["panel"], MenuView>> = {
   pages: "pageList",
   shortcuts: "shortcut",
-  share: "share"
+  share: "share",
+  about: "about"
 };
 
 const VIEW_TITLE_KEYS: Record<Exclude<MenuView, "menu">, string> = {
   pageList: "menu.openPages",
   shortcut: "menu.openShortcuts",
-  share: "menu.openShare"
+  share: "menu.openShare",
+  about: "menu.openAbout"
 };
+
+interface PageListHead {
+  root: HTMLDivElement;
+  thumb: HTMLSpanElement;
+  title: HTMLSpanElement;
+  author: HTMLSpanElement;
+  count: HTMLSpanElement;
+}
 
 export class MenuPanel {
   private root: HTMLDivElement;
@@ -42,10 +59,14 @@ export class MenuPanel {
   private viewShortcut: HTMLDivElement;
   private viewPageList: HTMLDivElement;
   private viewShare: HTMLDivElement;
+  private viewAbout: HTMLDivElement;
+  private aboutLogoWrap: HTMLDivElement;
   private shareUrlInput: HTMLInputElement;
   private sharePageCheckbox?: Checkbox;
   private pageListInner: HTMLDivElement;
+  private pageListHead: PageListHead;
   private pageListCacheKey?: string;
+  private coverCacheKey?: string;
   private currentState?: ViewerState;
   private currentView: MenuView = "menu";
   private i18nTexts: Array<{ key: string; apply: (text: string) => void }> =
@@ -82,15 +103,18 @@ export class MenuPanel {
 
     this.viewMenu = this.buildMenuView();
     this.viewShortcut = this.buildShortcutView();
-    [this.viewPageList, this.pageListInner] = this.buildPageListView();
+    [this.viewPageList, this.pageListInner, this.pageListHead] =
+      this.buildPageListView();
     [this.viewShare, this.shareUrlInput] = this.buildShareView();
+    [this.viewAbout, this.aboutLogoWrap] = this.buildAboutView();
 
     this.bottomEl.append(
       border,
       this.viewMenu,
       this.viewShortcut,
       this.viewPageList,
-      this.viewShare
+      this.viewShare,
+      this.viewAbout
     );
     const mascot = renderRabbitMascot(this.options.mascot);
     const children: Node[] = [background];
@@ -139,8 +163,12 @@ export class MenuPanel {
 
     this.refreshI18nTexts();
     this.refreshDetailTitle(view);
+    this.refreshPageListHead(state);
     this.refreshPageList(state);
     this.refreshShareUrl(state);
+    if (view === "about" && this.currentView !== "about") {
+      this.replayAboutLogo();
+    }
     this.applyHeight(isOpen, view);
 
     this.currentState = state;
@@ -166,10 +194,42 @@ export class MenuPanel {
       menu: this.viewMenu,
       shortcut: this.viewShortcut,
       pageList: this.viewPageList,
-      share: this.viewShare
+      share: this.viewShare,
+      about: this.viewAbout
     }[view];
     const height = target.offsetHeight;
     this.bottomEl.style.height = `${height}px`;
+  }
+
+  // ロゴのモーションは「comimiについて」を開くたびに最初から再生する。
+  private replayAboutLogo(): void {
+    this.aboutLogoWrap.replaceChildren(renderComimiLogo());
+  }
+
+  private refreshPageListHead(state: ViewerState): void {
+    const { manga } = state;
+    const head = this.pageListHead;
+    head.title.textContent = manga.title;
+    head.author.textContent = manga.author ? `@${manga.author}` : "";
+    head.author.style.display = manga.author ? "" : "none";
+    head.count.textContent = this.i18n.t("pageList.count", {
+      count: manga.pages.length
+    });
+
+    const cover = manga.pages[0];
+    const key = `${manga.id}:${cover?.id ?? ""}:${cover?.type ?? ""}`;
+    if (this.coverCacheKey === key) {
+      return;
+    }
+    this.coverCacheKey = key;
+    head.thumb.replaceChildren();
+    if (cover?.type === "image") {
+      const image = document.createElement("img");
+      image.alt = "";
+      image.draggable = false;
+      image.src = cover.thumbnailSrc ?? cover.src;
+      head.thumb.append(image);
+    }
   }
 
   private refreshPageList(state: ViewerState): void {
@@ -301,6 +361,9 @@ export class MenuPanel {
       ),
       this.renderMenuLink("menu.openShare", () =>
         this.callbacks.setPanel("share")
+      ),
+      this.renderMenuLink("menu.openAbout", () =>
+        this.callbacks.setPanel("about")
       )
     );
 
@@ -386,9 +449,11 @@ export class MenuPanel {
     return view;
   }
 
-  private buildPageListView(): [HTMLDivElement, HTMLDivElement] {
+  private buildPageListView(): [HTMLDivElement, HTMLDivElement, PageListHead] {
     const view = document.createElement("div");
     view.className = "comimi-menu-view comimi-menu-view-page-list";
+
+    const head = this.buildPageListHead();
 
     const inner = document.createElement("div");
     inner.className = "comimi-page-list-inner";
@@ -399,8 +464,96 @@ export class MenuPanel {
 
     bindScrollFade(inner);
 
+    view.append(head.root, inner, this.renderBackButton());
+    return [view, grid, head];
+  }
+
+  private buildPageListHead(): PageListHead {
+    const root = document.createElement("div");
+    root.className = "comimi-page-list-head";
+
+    const thumb = document.createElement("span");
+    thumb.className = "comimi-page-list-cover";
+
+    const body = document.createElement("span");
+    body.className = "comimi-page-list-head-body";
+
+    const title = document.createElement("span");
+    title.className = "comimi-page-list-head-title";
+
+    const author = document.createElement("span");
+    author.className = "comimi-page-list-head-author";
+
+    const count = document.createElement("span");
+    count.className = "comimi-page-list-head-count";
+
+    body.append(title, author, count);
+    root.append(thumb, body);
+    return { root, thumb, title, author, count };
+  }
+
+  private buildAboutView(): [HTMLDivElement, HTMLDivElement] {
+    const view = document.createElement("div");
+    view.className = "comimi-menu-view comimi-menu-view-about";
+
+    const inner = document.createElement("div");
+    inner.className = "comimi-about-inner";
+
+    const hero = document.createElement("div");
+    hero.className = "comimi-about-hero";
+    const logoWrap = document.createElement("div");
+    logoWrap.className = "comimi-about-logo";
+    hero.append(logoWrap);
+
+    const version = document.createElement("div");
+    version.className = "comimi-about-version";
+    const versionLabel = document.createElement("span");
+    versionLabel.className = "comimi-about-version-label";
+    this.bindI18nText(versionLabel, "about.version");
+    const versionValue = document.createElement("span");
+    versionValue.className = "comimi-about-version-value";
+    versionValue.textContent = `v${COMIMI_VERSION}`;
+    version.append(versionLabel, versionValue);
+
+    const links = document.createElement("div");
+    links.className = "comimi-about-links";
+    links.append(
+      this.renderAboutLink("about.repository", COMIMI_REPOSITORY_URL),
+      this.renderAboutLink("about.site", COMIMI_SITE_URL)
+    );
+
+    inner.append(hero, version, links);
     view.append(inner, this.renderBackButton());
-    return [view, grid];
+    return [view, logoWrap];
+  }
+
+  private renderAboutLink(labelKey: string, href: string): HTMLAnchorElement {
+    const link = document.createElement("a");
+    link.className = "comimi-about-link";
+    link.href = href;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.addEventListener("click", (event) => event.stopPropagation());
+
+    const text = document.createElement("span");
+    text.className = "comimi-about-link-text";
+
+    const label = document.createElement("span");
+    label.className = "comimi-about-link-label";
+    this.bindI18nText(label, labelKey);
+
+    const url = document.createElement("span");
+    url.className = "comimi-about-link-url";
+    url.textContent = href.replace(/^https?:\/\//, "");
+
+    text.append(label, url);
+
+    const arrow = document.createElement("span");
+    arrow.className = "comimi-about-link-arrow";
+    arrow.append(icon("arrow"));
+
+    link.append(text, arrow);
+    return link;
   }
 
   private buildShareView(): [HTMLDivElement, HTMLInputElement] {

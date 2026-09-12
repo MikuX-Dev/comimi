@@ -86,7 +86,10 @@ export class PageStage {
       groupEl.className = "comimi-page-group";
       groupEl.dataset.placement = groupSpec.placement;
       groupEl.dataset.side = getPageGroupSide(state, groupSpec.placement);
-      groupEl.style.transform = `translateX(${groupSpec.offset * 100}%)`;
+      groupEl.style.transform =
+        groupSpec.placement === "current"
+          ? zoomTransform(state)
+          : `translateX(${groupSpec.offset * 100}%)`;
 
       const isSpread = groupSpec.indexes.length > 1;
       for (const [visualIndex, pageIndex] of groupSpec.indexes.entries()) {
@@ -102,13 +105,6 @@ export class PageStage {
             : "right"
           : "single";
         cached.slot.dataset.pageIndex = String(pageIndex);
-        if (cached.img) {
-          // zoomPageIndex が null なら全ページに適用（ピンチ等の従来挙動）。
-          // 指定があれば、そのページ（カーソルが当たっているページ）だけズーム。
-          const applyZoom =
-            state.zoomPageIndex === null || state.zoomPageIndex === pageIndex;
-          cached.img.style.transform = applyZoom ? pageTransform(state) : "";
-        }
         groupEl.append(cached.slot);
       }
 
@@ -187,7 +183,6 @@ export class PageStage {
       } else if (page.html != null) {
         frame.innerHTML = page.html;
       }
-      frame.style.transform = pageTransform(state);
       slot.append(frame);
       return { slot, img: null };
     }
@@ -195,7 +190,6 @@ export class PageStage {
     const img = document.createElement("img");
     img.alt = page.alt ?? page.label ?? `${pageIndex + 1}`;
     img.draggable = false;
-    img.style.transform = pageTransform(state);
     img.addEventListener("error", () => {
       slot.replaceChildren(
         renderErrorIcon(
@@ -284,6 +278,9 @@ export class PageStage {
   }
 }
 
-function pageTransform(state: ViewerState): string {
+function zoomTransform(state: ViewerState): string {
+  if (state.zoomScale <= 1) {
+    return "";
+  }
   return `translate(${state.panX}px, ${state.panY}px) scale(${state.zoomScale})`;
 }
