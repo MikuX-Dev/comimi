@@ -17,6 +17,7 @@
   "settings.title": "ตั้งค่า",
   "settings.close": "ปิด",
   "settings.cover": "หน้าปก",
+  "settings.cover.enabled": "มีหน้าปก",
   "settings.theme": "ธีม",
   "settings.theme.light": "สว่าง",
   "settings.theme.dark": "มืด",

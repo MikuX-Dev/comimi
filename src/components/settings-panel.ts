@@ -109,8 +109,7 @@ export class SettingsPanel {
       this.buildSection(
         "cover",
         this.coverLabel,
-        this.coverCheckbox.getElement(),
-        true
+        this.coverCheckbox.getElement()
       ),
       this.buildSection(
         "direction",
@@ -139,7 +138,7 @@ export class SettingsPanel {
     this.titleEl.textContent = this.i18n.t("settings.title");
     this.localeLabel.textContent = "Language";
     this.coverLabel.textContent = this.i18n.t("settings.cover");
-    this.coverCheckbox.setLabel(this.i18n.t("settings.cover"));
+    this.coverCheckbox.setLabel(this.i18n.t("settings.cover.enabled"));
     this.directionLabel.textContent = this.i18n.t("settings.direction");
     this.intervalLabel.textContent = this.i18n.t("settings.interval");
     this.closeButton.textContent = this.i18n.t("settings.close");
@@ -225,13 +224,11 @@ export class SettingsPanel {
   /**
    * 非表示指定された項目は編集UIの代わりに値を静的表示する。
    * 値の確認はできるが操作はできない。
-   * `selfLabeled` な操作（チェックボックス等）は自身がラベルを持つので見出しを出さない。
    */
   private buildSection(
     key: HideableControl,
     label: HTMLDivElement,
-    control: HTMLElement,
-    selfLabeled = false
+    control: HTMLElement
   ): HTMLDivElement {
     if (this.hidden.has(key)) {
       const value = document.createElement("div");
@@ -239,7 +236,7 @@ export class SettingsPanel {
       this.staticValues[key] = value;
       return this.section(label, value);
     }
-    return this.section(selfLabeled ? null : label, control);
+    return this.section(label, control);
   }
 
   private setStaticValue(key: HideableControl, text: string): void {
@@ -254,14 +251,10 @@ export class SettingsPanel {
     return options.find((opt) => opt.value === value)?.label ?? value;
   }
 
-  private section(
-    label: HTMLDivElement | null,
-    control: HTMLElement
-  ): HTMLDivElement {
+  private section(label: HTMLDivElement, control: HTMLElement): HTMLDivElement {
     const wrap = document.createElement("div");
     wrap.className = "comimi-settings-section";
-    if (label) wrap.append(label);
-    wrap.append(control);
+    wrap.append(label, control);
     return wrap;
   }
 

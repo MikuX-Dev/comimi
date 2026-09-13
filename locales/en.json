@@ -17,6 +17,7 @@
   "settings.title": "Settings",
   "settings.close": "Close",
   "settings.cover": "Cover",
+  "settings.cover.enabled": "Has cover",
   "settings.theme": "Theme",
   "settings.theme.light": "Light",
   "settings.theme.dark": "Dark",

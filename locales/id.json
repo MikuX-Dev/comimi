@@ -17,6 +17,7 @@
   "settings.title": "Pengaturan",
   "settings.close": "Tutup",
   "settings.cover": "Sampul",
+  "settings.cover.enabled": "Ada sampul",
   "settings.theme": "Tema",
   "settings.theme.light": "Terang",
   "settings.theme.dark": "Gelap",
