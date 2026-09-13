@@ -37,10 +37,11 @@ export const settingsPanelStyles = `
   height: var(--comimi-settings-height, 460px);
 }
 
+/* 右上の表示モード切替（top 20px + 58px）に 8px 残して重ならない高さまで。 */
 .comimi-settings-panel-body {
   position: relative;
   width: 100%;
-  max-height: calc(var(--view-height, 100vh) - 62px - 56px);
+  max-height: calc(var(--view-height, 100vh) - 162px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -130,7 +131,7 @@ export const settingsPanelStyles = `
   }
 
   .comimi-settings-panel-body {
-    max-height: calc(var(--view-height, 100vh) - 140px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(var(--view-height, 100vh) - 90px - env(safe-area-inset-bottom, 0px));
   }
 
   .comimi-settings-panel-inner {
