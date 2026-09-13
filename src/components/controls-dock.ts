@@ -52,6 +52,7 @@ export class ControlsDock {
   private viewModeSwitcher?: ViewModeSwitcher;
 
   private prevPageTurnMode?: PageTurnMode;
+  private currentPageIndex = 0;
 
   constructor(
     private callbacks: RendererCallbacks,
@@ -75,6 +76,11 @@ export class ControlsDock {
     this.root.append(...children);
   }
 
+  /** 設定パネルはドックの外（ビューワーのルート直下）に配置する。 */
+  getSettingsElement(): HTMLElement {
+    return this.settings.getElement();
+  }
+
   getElement(): HTMLElement {
     return this.root;
   }
@@ -86,6 +92,7 @@ export class ControlsDock {
     // Seek
     const total = state.manga.pages.length;
     const totalDisplay = Math.max(1, total);
+    this.currentPageIndex = state.currentPageIndex;
     const current = state.currentPageIndex + 1;
     const fillRatio = total <= 1 ? 0 : state.currentPageIndex / (total - 1);
     this.seekCurrent.textContent = String(current);
@@ -97,7 +104,13 @@ export class ControlsDock {
       this.seekInput.value = String(state.currentPageIndex);
     }
     this.seekInput.dataset.direction = state.settings.readingDirection;
-    this.seekInput.disabled = state.autoPageTurnEnabled;
+    // disabled にすると iOS Safari がつまみを半透明に描くため、
+    // 操作不可は aria-disabled とフォーカス除外（＋ pointer-events）で表現する。
+    this.seekInput.setAttribute(
+      "aria-disabled",
+      String(state.autoPageTurnEnabled)
+    );
+    this.seekInput.tabIndex = state.autoPageTurnEnabled ? -1 : 0;
 
     // Autoplay
     this.autoplaySlider.dataset.active = String(state.autoPageTurnEnabled);
@@ -191,6 +204,10 @@ export class ControlsDock {
     this.seekInput.value = "0";
     this.seekInput.setAttribute("aria-label", "Seek bar");
     this.seekInput.addEventListener("input", () => {
+      if (this.seekInput.getAttribute("aria-disabled") === "true") {
+        this.seekInput.value = String(this.currentPageIndex);
+        return;
+      }
       this.callbacks.goToPage(Number(this.seekInput.value));
     });
 
@@ -371,7 +388,6 @@ export class ControlsDock {
       this.settingsTooltip
     ] = this.buildSettings();
     this.settings = new SettingsPanel(this.callbacks, this.i18n, this.hidden);
-    this.settingsContainer.append(this.settings.getElement());
 
     this.side.append(this.pageMode, this.settingsContainer);
     return this.side;

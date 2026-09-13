@@ -53,6 +53,9 @@ export const controlsDockStyles = `
   display: grid;
   justify-content: center;
   align-items: center;
+  transition:
+    opacity 0.2s ease-in-out,
+    visibility 0.2s ease-in-out;
 }
 
 /* hiddenSettings で隠したツールバー操作。
@@ -74,7 +77,8 @@ export const controlsDockStyles = `
     visibility 0.2s ease-in-out;
 }
 
-.comimi-controls-dock[data-autoplay="true"] .comimi-controls-side {
+.comimi-controls-dock[data-autoplay="true"] .comimi-controls-side,
+.comimi-controls-dock[data-autoplay="true"] .comimi-controls-center {
   opacity: 0;
   visibility: hidden;
 }
@@ -543,6 +547,15 @@ export const controlsDockStyles = `
 
   .comimi-autoplay-progress {
     width: 80px;
+  }
+
+  .comimi-controls-center {
+    justify-content: end;
+    padding-right: 16px;
+  }
+
+  .comimi-seek {
+    margin-bottom: 16px;
   }
 }
 `;

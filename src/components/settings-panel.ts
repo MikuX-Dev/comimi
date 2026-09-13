@@ -6,24 +6,26 @@ import type {
   ViewerState
 } from "../types";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
-import { RangeSlider, Selectbox, ToggleSwitch } from "./inputs";
+import { Checkbox, RangeSlider, RollingIconSwitch, Selectbox } from "./inputs";
 import { bindScrollFade } from "./scroll-fade";
 
 export class SettingsPanel {
   private root: HTMLDivElement;
+  private sheet: HTMLDivElement;
+  private panel: HTMLDivElement;
+  private closeButton: HTMLButtonElement;
   private body: HTMLDivElement;
   private inner: HTMLDivElement;
 
   private titleEl: HTMLDivElement;
   private localeLabel: HTMLDivElement;
-  private themeLabel: HTMLDivElement;
   private coverLabel: HTMLDivElement;
   private directionLabel: HTMLDivElement;
   private intervalLabel: HTMLDivElement;
 
   private localeSelect: Selectbox;
-  private themeSelect: Selectbox;
-  private coverToggle: ToggleSwitch;
+  private themeSwitch: RollingIconSwitch<ColorTheme>;
+  private coverCheckbox: Checkbox;
   private directionSelect: Selectbox;
   private intervalSlider: RangeSlider;
 
@@ -35,10 +37,31 @@ export class SettingsPanel {
     private hidden: ReadonlySet<HideableControl> = new Set()
   ) {
     this.root = document.createElement("div");
-    this.root.className = "comimi-settings-panel";
+    this.root.className = "comimi-settings-layer";
     this.root.dataset.open = "false";
-    this.root.setAttribute("role", "dialog");
-    this.root.addEventListener("click", (event) => event.stopPropagation());
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "comimi-settings-backdrop";
+    backdrop.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.callbacks.setPanel("none");
+    });
+
+    this.sheet = document.createElement("div");
+    this.sheet.className = "comimi-settings-sheet";
+
+    this.panel = document.createElement("div");
+    this.panel.className = "comimi-settings-panel";
+    this.panel.setAttribute("role", "dialog");
+    this.panel.addEventListener("click", (event) => event.stopPropagation());
+
+    this.closeButton = document.createElement("button");
+    this.closeButton.type = "button";
+    this.closeButton.className = "comimi-settings-close";
+    this.closeButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.callbacks.setPanel("none");
+    });
 
     this.body = document.createElement("div");
     this.body.className = "comimi-settings-panel-body";
@@ -52,10 +75,14 @@ export class SettingsPanel {
     this.localeSelect = new Selectbox((locale) =>
       this.callbacks.updateSettings({ locale: String(locale) })
     );
-    this.themeSelect = new Selectbox((theme) =>
-      this.callbacks.updateSettings({ theme: theme as ColorTheme })
+    this.themeSwitch = new RollingIconSwitch<ColorTheme>(
+      [
+        { value: "light", label: "", icon: "light" },
+        { value: "dark", label: "", icon: "dark" }
+      ],
+      (theme) => this.callbacks.updateSettings({ theme })
     );
-    this.coverToggle = new ToggleSwitch((hasCover) =>
+    this.coverCheckbox = new Checkbox((hasCover) =>
       this.callbacks.updateSettings({ hasCover })
     );
     this.directionSelect = new Selectbox((direction) =>
@@ -72,27 +99,21 @@ export class SettingsPanel {
     this.intervalSlider.setRange(3, 30, 1);
 
     this.localeLabel = this.createLabel();
-    this.themeLabel = this.createLabel();
     this.coverLabel = this.createLabel();
     this.directionLabel = this.createLabel();
     this.intervalLabel = this.createLabel();
 
     this.inner.append(
-      this.titleEl,
+      this.buildHeader(),
       this.buildSection(
         "locale",
         this.localeLabel,
         this.localeSelect.getElement()
       ),
       this.buildSection(
-        "theme",
-        this.themeLabel,
-        this.themeSelect.getElement()
-      ),
-      this.buildSection(
         "cover",
         this.coverLabel,
-        this.coverToggle.getElement()
+        this.coverCheckbox.getElement()
       ),
       this.buildSection(
         "direction",
@@ -106,8 +127,14 @@ export class SettingsPanel {
       )
     );
 
+    const grabber = document.createElement("span");
+    grabber.className = "comimi-settings-grabber";
+    this.bindSheetDrag(grabber, backdrop);
+
     this.body.append(this.inner);
-    this.root.append(this.body);
+    this.panel.append(grabber, this.body);
+    this.sheet.append(this.panel, this.closeButton);
+    this.root.append(backdrop, this.sheet);
 
     bindScrollFade(this.body);
   }
@@ -115,10 +142,11 @@ export class SettingsPanel {
   update(state: ViewerState): void {
     this.titleEl.textContent = this.i18n.t("settings.title");
     this.localeLabel.textContent = "Language";
-    this.themeLabel.textContent = this.i18n.t("settings.theme");
     this.coverLabel.textContent = this.i18n.t("settings.cover");
+    this.coverCheckbox.setLabel(this.i18n.t("settings.cover.enabled"));
     this.directionLabel.textContent = this.i18n.t("settings.direction");
     this.intervalLabel.textContent = this.i18n.t("settings.interval");
+    this.closeButton.textContent = this.i18n.t("settings.close");
 
     const localeOptions = [
       { label: "日本語", value: "ja" },
@@ -142,13 +170,13 @@ export class SettingsPanel {
     );
 
     this.localeSelect.setOptions(localeOptions);
-    this.themeSelect.setOptions(themeOptions);
+    this.themeSwitch.setLabels([themeOptions[0].label, themeOptions[1].label]);
     this.directionSelect.setOptions(directionOptions);
     this.intervalSlider.setUnit(intervalUnit);
 
     this.localeSelect.setValue(state.settings.locale);
-    this.themeSelect.setValue(state.settings.theme);
-    this.coverToggle.setChecked(state.settings.hasCover);
+    this.themeSwitch.setValue(state.settings.theme);
+    this.coverCheckbox.setChecked(state.settings.hasCover);
     this.directionSelect.setValue(state.settings.readingDirection);
     this.intervalSlider.setValue(intervalSeconds);
 
@@ -167,13 +195,33 @@ export class SettingsPanel {
     );
     this.setStaticValue("interval", `${intervalSeconds}${intervalUnit}`);
 
-    this.root.dataset.open = String(state.panel === "settings");
+    const isOpen = state.panel === "settings";
+    if (isOpen && this.root.dataset.open !== "true") {
+      this.sheet.style.transform = "";
+    }
+    this.root.dataset.open = String(isOpen);
 
     this.scheduleHeightUpdate();
   }
 
   getElement(): HTMLElement {
     return this.root;
+  }
+
+  // 見出し行: 左にタイトル、右にテーマ切替（hidden 指定時は現在値の静的表示）。
+  private buildHeader(): HTMLDivElement {
+    const header = document.createElement("div");
+    header.className = "comimi-settings-header";
+    header.append(this.titleEl);
+    if (this.hidden.has("theme")) {
+      const value = document.createElement("div");
+      value.className = "comimi-settings-static-value";
+      this.staticValues.theme = value;
+      header.append(value);
+    } else {
+      header.append(this.themeSwitch.getElement());
+    }
+    return header;
   }
 
   private createLabel(): HTMLDivElement {
@@ -217,6 +265,82 @@ export class SettingsPanel {
     wrap.className = "comimi-settings-section";
     wrap.append(label, control);
     return wrap;
+  }
+
+  // モバイルのシート（本体＋閉じるボタンのグループ）はハンドルを下へドラッグすると閉じる。
+  private bindSheetDrag(grabber: HTMLElement, backdrop: HTMLElement): void {
+    const CLOSE_DISTANCE_PX = 72;
+    const CLOSE_VELOCITY_PX_PER_MS = 0.5;
+    const CLOSE_SLIDE_PX = 120;
+    let pointerId: number | undefined;
+    let startY = 0;
+    let lastY = 0;
+    let lastTime = 0;
+    let velocity = 0;
+
+    const applyOffset = (offset: number) => {
+      this.sheet.style.transform = `translateY(${offset}px)`;
+      const height = Math.max(this.sheet.offsetHeight, 1);
+      backdrop.style.opacity = String(Math.max(0, 1 - offset / height));
+    };
+    const reset = () => {
+      this.sheet.style.transform = "";
+      backdrop.style.opacity = "";
+      delete this.sheet.dataset.dragging;
+      delete backdrop.dataset.dragging;
+    };
+
+    grabber.addEventListener("pointerdown", (event) => {
+      if (pointerId !== undefined || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pointerId = event.pointerId;
+      startY = lastY = event.clientY;
+      lastTime = event.timeStamp;
+      velocity = 0;
+      this.sheet.dataset.dragging = "true";
+      backdrop.dataset.dragging = "true";
+      grabber.setPointerCapture(event.pointerId);
+    });
+    grabber.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== pointerId) return;
+      const elapsed = event.timeStamp - lastTime;
+      if (elapsed > 0) {
+        velocity = (event.clientY - lastY) / elapsed;
+      }
+      lastY = event.clientY;
+      lastTime = event.timeStamp;
+      applyOffset(Math.max(0, event.clientY - startY));
+    });
+    const finish = (event: PointerEvent) => {
+      if (event.pointerId !== pointerId) return;
+      pointerId = undefined;
+      const offset = Math.max(0, event.clientY - startY);
+      const shouldClose =
+        offset > CLOSE_DISTANCE_PX || velocity > CLOSE_VELOCITY_PX_PER_MS;
+      if (!shouldClose) {
+        reset();
+        return;
+      }
+      // ドラッグ位置からそのまま下へ抜けるように、閉じる先を現在位置の下に置く。
+      delete this.sheet.dataset.dragging;
+      delete backdrop.dataset.dragging;
+      backdrop.style.opacity = "";
+      this.callbacks.setPanel("none");
+      requestAnimationFrame(() => {
+        this.sheet.style.transform = `translateY(${offset + CLOSE_SLIDE_PX}px)`;
+      });
+    };
+    this.sheet.addEventListener("transitionend", (event) => {
+      if (event.target === this.sheet && event.propertyName === "transform") {
+        if (this.root.dataset.open !== "true") {
+          this.sheet.style.transform = "";
+        }
+      }
+    });
+    grabber.addEventListener("pointerup", finish);
+    grabber.addEventListener("pointercancel", finish);
+    grabber.addEventListener("click", (event) => event.stopPropagation());
   }
 
   private scheduleHeightUpdate(): void {
