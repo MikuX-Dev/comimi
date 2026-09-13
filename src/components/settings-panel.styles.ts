@@ -26,15 +26,27 @@ export const settingsPanelStyles = `
   box-shadow: var(--comimi-shadow);
   backdrop-filter: blur(5px);
   opacity: 0;
-  pointer-events: auto;
+  visibility: hidden;
+  pointer-events: none;
   transition:
     height 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02),
-    opacity 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02);
+    opacity 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02),
+    visibility 0s linear 0.38s;
 }
 
 .comimi-settings-layer[data-open="true"] .comimi-settings-panel {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
   height: var(--comimi-settings-height, 460px);
+  transition:
+    height 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02),
+    opacity 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02),
+    visibility 0s linear 0s;
+}
+
+.comimi-settings-panel[data-dragging="true"] {
+  transition: none;
 }
 
 /* 右上の表示モード切替（top 20px + 58px）に 8px 残して重ならない高さまで。 */
@@ -112,26 +124,50 @@ export const settingsPanelStyles = `
     transform: translateY(32px);
     transition:
       transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.2s linear;
+      opacity 0.2s linear,
+      visibility 0s linear 0.36s;
   }
 
   .comimi-settings-layer[data-open="true"] .comimi-settings-panel {
     height: auto;
     opacity: 1;
     transform: translateY(0);
+    transition:
+      transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.2s linear,
+      visibility 0s linear 0s;
   }
 
   .comimi-settings-grabber {
     display: block;
+    position: relative;
+    height: 22px;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .comimi-settings-grabber::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
     width: 36px;
     height: 5px;
-    margin: 8px auto 4px;
     border-radius: 999px;
     background: var(--comimi-handle);
+    transform: translateX(-50%);
+  }
+
+  .comimi-settings-panel[data-dragging="true"] .comimi-settings-grabber {
+    cursor: grabbing;
+  }
+
+  .comimi-settings-backdrop[data-dragging="true"] {
+    transition: none;
   }
 
   .comimi-settings-panel-body {
-    max-height: calc(var(--view-height, 100vh) - 90px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(var(--view-height, 100vh) - 96px - env(safe-area-inset-bottom, 0px));
   }
 
   .comimi-settings-panel-inner {

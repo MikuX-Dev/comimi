@@ -126,6 +126,7 @@ export class SettingsPanel {
 
     const grabber = document.createElement("span");
     grabber.className = "comimi-settings-grabber";
+    this.bindSheetDrag(grabber, backdrop);
 
     this.body.append(this.inner);
     this.panel.append(grabber, this.body);
@@ -262,6 +263,64 @@ export class SettingsPanel {
     if (label) wrap.append(label);
     wrap.append(control);
     return wrap;
+  }
+
+  // モバイルのシートはハンドルを下へドラッグすると閉じる。
+  private bindSheetDrag(grabber: HTMLElement, backdrop: HTMLElement): void {
+    const CLOSE_DISTANCE_PX = 72;
+    const CLOSE_VELOCITY_PX_PER_MS = 0.5;
+    let pointerId: number | undefined;
+    let startY = 0;
+    let lastY = 0;
+    let lastTime = 0;
+    let velocity = 0;
+
+    const applyOffset = (offset: number) => {
+      this.panel.style.transform = `translateY(${offset}px)`;
+      const height = Math.max(this.panel.offsetHeight, 1);
+      backdrop.style.opacity = String(Math.max(0, 1 - offset / height));
+    };
+    const reset = () => {
+      this.panel.style.transform = "";
+      backdrop.style.opacity = "";
+      delete this.panel.dataset.dragging;
+      delete backdrop.dataset.dragging;
+    };
+
+    grabber.addEventListener("pointerdown", (event) => {
+      if (pointerId !== undefined || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pointerId = event.pointerId;
+      startY = lastY = event.clientY;
+      lastTime = event.timeStamp;
+      velocity = 0;
+      this.panel.dataset.dragging = "true";
+      backdrop.dataset.dragging = "true";
+      grabber.setPointerCapture(event.pointerId);
+    });
+    grabber.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== pointerId) return;
+      const elapsed = event.timeStamp - lastTime;
+      if (elapsed > 0) {
+        velocity = (event.clientY - lastY) / elapsed;
+      }
+      lastY = event.clientY;
+      lastTime = event.timeStamp;
+      applyOffset(Math.max(0, event.clientY - startY));
+    });
+    const finish = (event: PointerEvent) => {
+      if (event.pointerId !== pointerId) return;
+      pointerId = undefined;
+      const offset = Math.max(0, event.clientY - startY);
+      reset();
+      if (offset > CLOSE_DISTANCE_PX || velocity > CLOSE_VELOCITY_PX_PER_MS) {
+        this.callbacks.setPanel("none");
+      }
+    };
+    grabber.addEventListener("pointerup", finish);
+    grabber.addEventListener("pointercancel", finish);
+    grabber.addEventListener("click", (event) => event.stopPropagation());
   }
 
   private scheduleHeightUpdate(): void {
