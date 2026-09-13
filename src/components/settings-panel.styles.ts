@@ -123,9 +123,9 @@ export const settingsPanelStyles = `
     visibility: hidden;
     transform: translateY(96px);
     transition:
-      transform 0.3s cubic-bezier(0.4, 0, 1, 1),
-      opacity 0.2s linear 0.1s,
-      visibility 0s linear 0.3s;
+      transform 0.22s cubic-bezier(0.4, 0, 1, 1),
+      opacity 0.16s linear 0.06s,
+      visibility 0s linear 0.22s;
   }
 
   .comimi-settings-layer[data-open="true"] .comimi-settings-sheet {
