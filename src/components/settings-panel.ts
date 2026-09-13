@@ -11,6 +11,7 @@ import { bindScrollFade } from "./scroll-fade";
 
 export class SettingsPanel {
   private root: HTMLDivElement;
+  private sheet: HTMLDivElement;
   private panel: HTMLDivElement;
   private closeButton: HTMLButtonElement;
   private body: HTMLDivElement;
@@ -45,6 +46,9 @@ export class SettingsPanel {
       event.stopPropagation();
       this.callbacks.setPanel("none");
     });
+
+    this.sheet = document.createElement("div");
+    this.sheet.className = "comimi-settings-sheet";
 
     this.panel = document.createElement("div");
     this.panel.className = "comimi-settings-panel";
@@ -129,7 +133,8 @@ export class SettingsPanel {
 
     this.body.append(this.inner);
     this.panel.append(grabber, this.body);
-    this.root.append(backdrop, this.panel, this.closeButton);
+    this.sheet.append(this.panel, this.closeButton);
+    this.root.append(backdrop, this.sheet);
 
     bindScrollFade(this.body);
   }
@@ -258,7 +263,7 @@ export class SettingsPanel {
     return wrap;
   }
 
-  // モバイルのシートはハンドルを下へドラッグすると閉じる。
+  // モバイルのシート（本体＋閉じるボタンのグループ）はハンドルを下へドラッグすると閉じる。
   private bindSheetDrag(grabber: HTMLElement, backdrop: HTMLElement): void {
     const CLOSE_DISTANCE_PX = 72;
     const CLOSE_VELOCITY_PX_PER_MS = 0.5;
@@ -269,18 +274,14 @@ export class SettingsPanel {
     let velocity = 0;
 
     const applyOffset = (offset: number) => {
-      const transform = `translateY(${offset}px)`;
-      this.panel.style.transform = transform;
-      this.closeButton.style.transform = transform;
-      const height = Math.max(this.panel.offsetHeight, 1);
+      this.sheet.style.transform = `translateY(${offset}px)`;
+      const height = Math.max(this.sheet.offsetHeight, 1);
       backdrop.style.opacity = String(Math.max(0, 1 - offset / height));
     };
     const reset = () => {
-      this.panel.style.transform = "";
-      this.closeButton.style.transform = "";
+      this.sheet.style.transform = "";
       backdrop.style.opacity = "";
-      delete this.panel.dataset.dragging;
-      delete this.closeButton.dataset.dragging;
+      delete this.sheet.dataset.dragging;
       delete backdrop.dataset.dragging;
     };
 
@@ -292,8 +293,7 @@ export class SettingsPanel {
       startY = lastY = event.clientY;
       lastTime = event.timeStamp;
       velocity = 0;
-      this.panel.dataset.dragging = "true";
-      this.closeButton.dataset.dragging = "true";
+      this.sheet.dataset.dragging = "true";
       backdrop.dataset.dragging = "true";
       grabber.setPointerCapture(event.pointerId);
     });

@@ -12,6 +12,12 @@ export const settingsPanelStyles = `
   pointer-events: none;
 }
 
+.comimi-settings-sheet {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 /* デスクトップ: ドック右端の歯車ボタンの上に出るポップオーバー。
    ドック（bottom 24px / padding 20px / ボタン 24px）から位置を固定値で決める。 */
 .comimi-settings-panel {
@@ -43,10 +49,6 @@ export const settingsPanelStyles = `
     height 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02),
     opacity 0.38s cubic-bezier(0.12, 1.06, 0.56, 1.02),
     visibility 0s linear 0s;
-}
-
-.comimi-settings-panel[data-dragging="true"] {
-  transition: none;
 }
 
 /* 右上の表示モード切替（top 20px + 58px）に 8px 残して重ならない高さまで。 */
@@ -95,7 +97,8 @@ export const settingsPanelStyles = `
   font-weight: 500;
 }
 
-/* モバイルでは iOS のアクションシート風に画面下から出す */
+/* モバイルでは iOS のアクションシート風に画面下から出す。
+   シート本体と閉じるボタンは 1 つのグループとして開閉・ドラッグする。 */
 @media (max-width: 767px) {
   .comimi-settings-backdrop {
     display: block;
@@ -112,15 +115,12 @@ export const settingsPanelStyles = `
     pointer-events: auto;
   }
 
-  .comimi-settings-panel {
-    position: absolute;
-    right: 8px;
-    bottom: calc(8px + 56px + env(safe-area-inset-bottom, 0px));
-    left: 8px;
-    width: auto;
-    height: auto;
-    border-radius: 16px;
+  .comimi-settings-sheet {
+    inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px;
+    display: grid;
+    row-gap: 8px;
     opacity: 0;
+    visibility: hidden;
     transform: translateY(56px);
     transition:
       transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
@@ -128,14 +128,34 @@ export const settingsPanelStyles = `
       visibility 0s linear 0.36s;
   }
 
-  .comimi-settings-layer[data-open="true"] .comimi-settings-panel {
-    height: auto;
+  .comimi-settings-layer[data-open="true"] .comimi-settings-sheet {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
     transform: translateY(0);
     transition:
       transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
       opacity 0.2s linear,
       visibility 0s linear 0s;
+  }
+
+  .comimi-settings-sheet[data-dragging="true"],
+  .comimi-settings-backdrop[data-dragging="true"] {
+    transition: none;
+  }
+
+  .comimi-settings-panel,
+  .comimi-settings-layer[data-open="true"] .comimi-settings-panel {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    height: auto;
+    border-radius: 16px;
+    opacity: 1;
+    visibility: inherit;
+    pointer-events: auto;
+    transition: none;
   }
 
   .comimi-settings-grabber {
@@ -158,29 +178,16 @@ export const settingsPanelStyles = `
     transform: translateX(-50%);
   }
 
-  .comimi-settings-panel[data-dragging="true"] .comimi-settings-grabber {
+  .comimi-settings-sheet[data-dragging="true"] .comimi-settings-grabber {
     cursor: grabbing;
-  }
-
-  .comimi-settings-backdrop[data-dragging="true"],
-  .comimi-settings-close[data-dragging="true"] {
-    transition: none;
   }
 
   .comimi-settings-panel-body {
     max-height: calc(var(--view-height, 100vh) - 96px - env(safe-area-inset-bottom, 0px));
   }
 
-  .comimi-settings-panel-inner {
-    padding: 0 20px;
-  }
-
   .comimi-settings-close {
     display: block;
-    position: absolute;
-    right: 8px;
-    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
-    left: 8px;
     box-sizing: border-box;
     height: 48px;
     padding: 0;
@@ -194,19 +201,6 @@ export const settingsPanelStyles = `
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    opacity: 0;
-    transform: translateY(56px);
-    pointer-events: none;
-    transition:
-      transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.2s linear;
-  }
-
-  .comimi-settings-layer[data-open="true"] .comimi-settings-close {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
   }
 }
-
 `;
