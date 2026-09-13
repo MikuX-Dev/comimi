@@ -1,55 +1,13 @@
-import { icon } from "./icons";
+import { icon, type IconName } from "./icons";
 
 export interface SelectOption {
   label: string;
   value: string | number;
 }
 
-export class ToggleSwitch {
-  private root: HTMLButtonElement;
-
-  constructor(onChange: (checked: boolean) => void) {
-    this.root = document.createElement("button");
-    this.root.type = "button";
-    this.root.className = "comimi-toggle-switch";
-    this.root.dataset.checked = "false";
-
-    const track = document.createElement("span");
-    track.className = "comimi-toggle-track";
-    const knob = document.createElement("span");
-    knob.className = "comimi-toggle-knob";
-    track.append(knob);
-
-    const labelWrap = document.createElement("span");
-    labelWrap.className = "comimi-toggle-label-wrap";
-    const labelInner = document.createElement("span");
-    labelInner.className = "comimi-toggle-label-inner";
-    const on = document.createElement("span");
-    on.className = "comimi-toggle-label comimi-toggle-label-on";
-    on.textContent = "ON";
-    const off = document.createElement("span");
-    off.className = "comimi-toggle-label comimi-toggle-label-off";
-    off.textContent = "OFF";
-    labelInner.append(on, off);
-    labelWrap.append(labelInner);
-
-    this.root.append(track, labelWrap);
-
-    this.root.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const isChecked = this.root.dataset.checked === "true";
-      onChange(!isChecked);
-    });
-  }
-
-  setChecked(checked: boolean): void {
-    this.root.dataset.checked = String(checked);
-  }
-
-  getElement(): HTMLButtonElement {
-    return this.root;
-  }
-}
+const SVG_NS = "http://www.w3.org/2000/svg";
+const CHECK_STROKE_LENGTH = 11.4;
+let checkboxMaskSeq = 0;
 
 export class Checkbox {
   private root: HTMLLabelElement;
@@ -68,7 +26,13 @@ export class Checkbox {
 
     const box = document.createElement("span");
     box.className = "comimi-checkbox-box";
-    box.append(icon("check"));
+    box.setAttribute("aria-hidden", "true");
+
+    const stroke = document.createElement("span");
+    stroke.className = "comimi-checkbox-stroke";
+    const bg = document.createElement("span");
+    bg.className = "comimi-checkbox-bg";
+    box.append(stroke, bg, buildCheckIcon());
 
     this.label = document.createElement("span");
     this.label.className = "comimi-checkbox-label";
@@ -89,6 +53,104 @@ export class Checkbox {
   }
 
   getElement(): HTMLLabelElement {
+    return this.root;
+  }
+}
+
+// チェックマークはマスクした線を stroke-dasharray で描き進める（comugi UI と同じ）。
+function buildCheckIcon(): SVGSVGElement {
+  checkboxMaskSeq += 1;
+  const maskId = `comimi-checkbox-mask-${checkboxMaskSeq}`;
+
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 11.04 8.31");
+  svg.setAttribute("class", "comimi-checkbox-check");
+
+  const mask = document.createElementNS(SVG_NS, "mask");
+  mask.setAttribute("id", maskId);
+  const line = document.createElementNS(SVG_NS, "polyline");
+  line.setAttribute("class", "comimi-checkbox-check-line");
+  line.setAttribute("points", "1.5 4.09 4.26 6.81 9.53 1.5");
+  line.style.setProperty("--comimi-check-length", String(CHECK_STROKE_LENGTH));
+  mask.append(line);
+
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("class", "comimi-checkbox-check-path");
+  path.setAttribute("mask", `url(#${maskId})`);
+  path.setAttribute(
+    "d",
+    "m.52,3.08c.59-.59,1.54-.59,2.12,0l1.6,1.6L8.48.44c.59-.59,1.54-.59,2.12,0s.59,1.54,0,2.12l-5.3,5.3c-.28.28-.66.44-1.06.44s-.78-.16-1.06-.44L.52,5.2c-.59-.59-.59-1.54,0-2.12Z"
+  );
+
+  svg.append(mask, path);
+  return svg;
+}
+
+export interface RollingSwitchOption<T extends string> {
+  value: T;
+  label: string;
+  icon: IconName;
+}
+
+// 2 択のアイコンスイッチ。インジケーターが転がって反対側へ移る（comugi UI の RollingIconSwitch）。
+export class RollingIconSwitch<T extends string> {
+  private root: HTMLDivElement;
+  private indicator: HTMLSpanElement;
+  private buttons: Array<{ value: T; button: HTMLButtonElement }> = [];
+  private value?: T;
+
+  constructor(
+    options: readonly [RollingSwitchOption<T>, RollingSwitchOption<T>],
+    onChange: (value: T) => void
+  ) {
+    this.root = document.createElement("div");
+    this.root.className = "comimi-rolling-switch";
+    this.root.setAttribute("role", "group");
+    this.root.dataset.position = "first";
+
+    this.indicator = document.createElement("span");
+    this.indicator.className = "comimi-rolling-switch-indicator";
+    this.indicator.addEventListener("animationend", () => {
+      delete this.root.dataset.animation;
+    });
+    this.root.append(this.indicator);
+
+    options.forEach((option, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "comimi-rolling-switch-button";
+      button.setAttribute("aria-label", option.label);
+      button.setAttribute("aria-pressed", "false");
+      button.append(icon(option.icon));
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (option.value === this.value) {
+          return;
+        }
+        this.root.dataset.animation = index === 0 ? "first" : "second";
+        onChange(option.value);
+      });
+      this.root.append(button);
+      this.buttons.push({ value: option.value, button });
+    });
+  }
+
+  setLabels(labels: readonly [string, string]): void {
+    this.buttons.forEach(({ button }, index) => {
+      button.setAttribute("aria-label", labels[index]);
+    });
+  }
+
+  setValue(value: T): void {
+    this.value = value;
+    this.root.dataset.position =
+      value === this.buttons[0]?.value ? "first" : "second";
+    for (const entry of this.buttons) {
+      entry.button.setAttribute("aria-pressed", String(entry.value === value));
+    }
+  }
+
+  getElement(): HTMLDivElement {
     return this.root;
   }
 }

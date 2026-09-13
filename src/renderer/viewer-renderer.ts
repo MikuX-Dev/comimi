@@ -52,7 +52,7 @@ const SWIPE_BLOCKING_SELECTOR = [
   ".comimi-view-switcher",
   ".comimi-controls-dock",
   ".comimi-menu-panel",
-  ".comimi-settings-panel",
+  ".comimi-settings-layer",
   "button",
   "input",
   "select",
@@ -245,6 +245,7 @@ export class ViewerRenderer {
     const menuPanelEl = this.menuPanel.getElement();
     const viewModeSwitcherEl = this.viewModeSwitcher?.getElement();
     const controlsDockEl = this.controlsDock.getElement();
+    const settingsEl = this.controlsDock.getSettingsElement();
     const notificationsEl = this.notifications.getElement();
     const arrowButtonsEl = this.arrowButtons.getElement();
 
@@ -255,6 +256,7 @@ export class ViewerRenderer {
         child !== menuPanelEl &&
         child !== viewModeSwitcherEl &&
         child !== controlsDockEl &&
+        child !== settingsEl &&
         child !== this.splash &&
         child !== this.autoplayProgress?.root &&
         child !== notificationsEl &&
@@ -309,6 +311,9 @@ export class ViewerRenderer {
     }
     if (controlsDockEl.parentNode !== this.root) {
       this.root.appendChild(controlsDockEl);
+    }
+    if (settingsEl.parentNode !== this.root) {
+      this.root.appendChild(settingsEl);
     }
     if (notificationsEl.parentNode !== this.root) {
       this.root.appendChild(notificationsEl);
@@ -747,7 +752,7 @@ export class ViewerRenderer {
       if (state.panel !== "settings") return;
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest(".comimi-settings")) return;
+      if (target.closest(".comimi-settings, .comimi-settings-layer")) return;
       this.callbacks.setPanel("none");
     };
 

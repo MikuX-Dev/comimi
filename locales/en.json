@@ -15,6 +15,7 @@
   "layout.wide": "Wide",
   "layout.browserFullscreen": "Fullscreen",
   "settings.title": "Settings",
+  "settings.close": "Close",
   "settings.cover": "Has cover",
   "settings.theme": "Theme",
   "settings.theme.light": "Light",

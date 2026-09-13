@@ -75,6 +75,11 @@ export class ControlsDock {
     this.root.append(...children);
   }
 
+  /** 設定パネルはドックの外（ビューワーのルート直下）に配置する。 */
+  getSettingsElement(): HTMLElement {
+    return this.settings.getElement();
+  }
+
   getElement(): HTMLElement {
     return this.root;
   }
@@ -371,7 +376,6 @@ export class ControlsDock {
       this.settingsTooltip
     ] = this.buildSettings();
     this.settings = new SettingsPanel(this.callbacks, this.i18n, this.hidden);
-    this.settingsContainer.append(this.settings.getElement());
 
     this.side.append(this.pageMode, this.settingsContainer);
     return this.side;
