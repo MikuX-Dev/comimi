@@ -195,7 +195,11 @@ export class SettingsPanel {
     );
     this.setStaticValue("interval", `${intervalSeconds}${intervalUnit}`);
 
-    this.root.dataset.open = String(state.panel === "settings");
+    const isOpen = state.panel === "settings";
+    if (isOpen && this.root.dataset.open !== "true") {
+      this.sheet.style.transform = "";
+    }
+    this.root.dataset.open = String(isOpen);
 
     this.scheduleHeightUpdate();
   }
@@ -267,6 +271,7 @@ export class SettingsPanel {
   private bindSheetDrag(grabber: HTMLElement, backdrop: HTMLElement): void {
     const CLOSE_DISTANCE_PX = 72;
     const CLOSE_VELOCITY_PX_PER_MS = 0.5;
+    const CLOSE_SLIDE_PX = 120;
     let pointerId: number | undefined;
     let startY = 0;
     let lastY = 0;
@@ -311,11 +316,28 @@ export class SettingsPanel {
       if (event.pointerId !== pointerId) return;
       pointerId = undefined;
       const offset = Math.max(0, event.clientY - startY);
-      reset();
-      if (offset > CLOSE_DISTANCE_PX || velocity > CLOSE_VELOCITY_PX_PER_MS) {
-        this.callbacks.setPanel("none");
+      const shouldClose =
+        offset > CLOSE_DISTANCE_PX || velocity > CLOSE_VELOCITY_PX_PER_MS;
+      if (!shouldClose) {
+        reset();
+        return;
       }
+      // ドラッグ位置からそのまま下へ抜けるように、閉じる先を現在位置の下に置く。
+      delete this.sheet.dataset.dragging;
+      delete backdrop.dataset.dragging;
+      backdrop.style.opacity = "";
+      this.callbacks.setPanel("none");
+      requestAnimationFrame(() => {
+        this.sheet.style.transform = `translateY(${offset + CLOSE_SLIDE_PX}px)`;
+      });
     };
+    this.sheet.addEventListener("transitionend", (event) => {
+      if (event.target === this.sheet && event.propertyName === "transform") {
+        if (this.root.dataset.open !== "true") {
+          this.sheet.style.transform = "";
+        }
+      }
+    });
     grabber.addEventListener("pointerup", finish);
     grabber.addEventListener("pointercancel", finish);
     grabber.addEventListener("click", (event) => event.stopPropagation());

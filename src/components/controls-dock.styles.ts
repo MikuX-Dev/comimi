@@ -544,5 +544,10 @@ export const controlsDockStyles = `
   .comimi-autoplay-progress {
     width: 80px;
   }
+
+  .comimi-controls-center {
+    justify-content: end;
+    padding-right: 16px;
+  }
 }
 `;

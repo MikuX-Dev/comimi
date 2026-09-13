@@ -75,7 +75,7 @@ export const settingsPanelStyles = `
 
 .comimi-settings-panel-title {
   color: var(--comimi-fg);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -123,9 +123,9 @@ export const settingsPanelStyles = `
     visibility: hidden;
     transform: translateY(96px);
     transition:
-      transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.2s linear,
-      visibility 0s linear 0.36s;
+      transform 0.3s cubic-bezier(0.4, 0, 1, 1),
+      opacity 0.2s linear 0.1s,
+      visibility 0s linear 0.3s;
   }
 
   .comimi-settings-layer[data-open="true"] .comimi-settings-sheet {
@@ -139,8 +139,8 @@ export const settingsPanelStyles = `
       visibility 0s linear 0s;
   }
 
-  .comimi-settings-sheet[data-dragging="true"],
-  .comimi-settings-backdrop[data-dragging="true"] {
+  .comimi-settings-layer[data-open="true"] .comimi-settings-sheet[data-dragging="true"],
+  .comimi-settings-layer[data-open="true"] .comimi-settings-backdrop[data-dragging="true"] {
     transition: none;
   }
 
