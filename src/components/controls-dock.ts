@@ -52,6 +52,7 @@ export class ControlsDock {
   private viewModeSwitcher?: ViewModeSwitcher;
 
   private prevPageTurnMode?: PageTurnMode;
+  private currentPageIndex = 0;
 
   constructor(
     private callbacks: RendererCallbacks,
@@ -91,6 +92,7 @@ export class ControlsDock {
     // Seek
     const total = state.manga.pages.length;
     const totalDisplay = Math.max(1, total);
+    this.currentPageIndex = state.currentPageIndex;
     const current = state.currentPageIndex + 1;
     const fillRatio = total <= 1 ? 0 : state.currentPageIndex / (total - 1);
     this.seekCurrent.textContent = String(current);
@@ -102,7 +104,13 @@ export class ControlsDock {
       this.seekInput.value = String(state.currentPageIndex);
     }
     this.seekInput.dataset.direction = state.settings.readingDirection;
-    this.seekInput.disabled = state.autoPageTurnEnabled;
+    // disabled にすると iOS Safari がつまみを半透明に描くため、
+    // 操作不可は aria-disabled とフォーカス除外（＋ pointer-events）で表現する。
+    this.seekInput.setAttribute(
+      "aria-disabled",
+      String(state.autoPageTurnEnabled)
+    );
+    this.seekInput.tabIndex = state.autoPageTurnEnabled ? -1 : 0;
 
     // Autoplay
     this.autoplaySlider.dataset.active = String(state.autoPageTurnEnabled);
@@ -196,6 +204,10 @@ export class ControlsDock {
     this.seekInput.value = "0";
     this.seekInput.setAttribute("aria-label", "Seek bar");
     this.seekInput.addEventListener("input", () => {
+      if (this.seekInput.getAttribute("aria-disabled") === "true") {
+        this.seekInput.value = String(this.currentPageIndex);
+        return;
+      }
       this.callbacks.goToPage(Number(this.seekInput.value));
     });
 
