@@ -276,14 +276,18 @@ export class SettingsPanel {
     let velocity = 0;
 
     const applyOffset = (offset: number) => {
-      this.panel.style.transform = `translateY(${offset}px)`;
+      const transform = `translateY(${offset}px)`;
+      this.panel.style.transform = transform;
+      this.closeButton.style.transform = transform;
       const height = Math.max(this.panel.offsetHeight, 1);
       backdrop.style.opacity = String(Math.max(0, 1 - offset / height));
     };
     const reset = () => {
       this.panel.style.transform = "";
+      this.closeButton.style.transform = "";
       backdrop.style.opacity = "";
       delete this.panel.dataset.dragging;
+      delete this.closeButton.dataset.dragging;
       delete backdrop.dataset.dragging;
     };
 
@@ -296,6 +300,7 @@ export class SettingsPanel {
       lastTime = event.timeStamp;
       velocity = 0;
       this.panel.dataset.dragging = "true";
+      this.closeButton.dataset.dragging = "true";
       backdrop.dataset.dragging = "true";
       grabber.setPointerCapture(event.pointerId);
     });

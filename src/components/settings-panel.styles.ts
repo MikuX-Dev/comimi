@@ -121,7 +121,7 @@ export const settingsPanelStyles = `
     height: auto;
     border-radius: 16px;
     opacity: 0;
-    transform: translateY(32px);
+    transform: translateY(56px);
     transition:
       transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
       opacity 0.2s linear,
@@ -162,7 +162,8 @@ export const settingsPanelStyles = `
     cursor: grabbing;
   }
 
-  .comimi-settings-backdrop[data-dragging="true"] {
+  .comimi-settings-backdrop[data-dragging="true"],
+  .comimi-settings-close[data-dragging="true"] {
     transition: none;
   }
 
@@ -194,7 +195,7 @@ export const settingsPanelStyles = `
     font-weight: 700;
     cursor: pointer;
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(56px);
     pointer-events: none;
     transition:
       transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),

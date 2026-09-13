@@ -80,6 +80,25 @@ export const splashScreenStyles = `
   animation-delay: 0.3s;
 }
 
+@media (max-width: 767px) {
+  .comimi-splash-logo-wrap {
+    width: 200px;
+  }
+
+  .comimi-splash-logo {
+    transform: translate(-50%, -50%) scale(0.555);
+  }
+
+  .comimi-splash-logo-wrap-custom,
+  .comimi-splash-custom-logo {
+    width: 96px;
+  }
+
+  .comimi-splash-text {
+    font-size: 13px;
+  }
+}
+
 @keyframes comimi-splash-clip {
   from {
     clip-path: circle(75%);
