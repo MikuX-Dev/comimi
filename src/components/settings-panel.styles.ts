@@ -121,7 +121,7 @@ export const settingsPanelStyles = `
     row-gap: 8px;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(56px);
+    transform: translateY(96px);
     transition:
       transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
       opacity 0.2s linear,
