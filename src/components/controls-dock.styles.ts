@@ -553,5 +553,9 @@ export const controlsDockStyles = `
     justify-content: end;
     padding-right: 16px;
   }
+
+  .comimi-seek {
+    margin-bottom: 16px;
+  }
 }
 `;
