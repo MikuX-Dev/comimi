@@ -109,9 +109,9 @@ export const settingsPanelStyles = `
     height: auto;
     border-radius: 16px;
     opacity: 0;
-    transform: translateY(calc(100% + 80px));
+    transform: translateY(32px);
     transition:
-      transform 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+      transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
       opacity 0.2s linear;
   }
 
@@ -158,10 +158,10 @@ export const settingsPanelStyles = `
     font-weight: 700;
     cursor: pointer;
     opacity: 0;
-    transform: translateY(calc(100% + 16px));
+    transform: translateY(24px);
     pointer-events: none;
     transition:
-      transform 0.42s cubic-bezier(0.32, 0.72, 0, 1),
+      transform 0.36s cubic-bezier(0.32, 0.72, 0, 1),
       opacity 0.2s linear;
   }
 
