@@ -39,8 +39,8 @@ export class IndexedDbStorage {
     return record?.value;
   }
 
-  async saveSettings(settings: Partial<ViewerSettings>): Promise<void> {
-    await this.put("settings", {
+  async saveSettings(settings: Partial<ViewerSettings>): Promise<boolean> {
+    return this.put("settings", {
       id: "global",
       value: settings,
       updatedAt: Date.now()
@@ -61,9 +61,9 @@ export class IndexedDbStorage {
   async saveMangaSettings(
     mangaId: string,
     settings: Partial<ViewerSettings>
-  ): Promise<void> {
+  ): Promise<boolean> {
     const existing = await this.getMangaSettings(mangaId);
-    await this.put("mangaSettings", {
+    return this.put("mangaSettings", {
       mangaId,
       value: { ...existing, ...settings },
       updatedAt: Date.now()
@@ -78,8 +78,8 @@ export class IndexedDbStorage {
     return record?.pageIndex;
   }
 
-  async saveProgress(mangaId: string, pageIndex: number): Promise<void> {
-    await this.put("readingProgress", {
+  async saveProgress(mangaId: string, pageIndex: number): Promise<boolean> {
+    return this.put("readingProgress", {
       mangaId,
       pageIndex,
       updatedAt: Date.now()
@@ -92,16 +92,17 @@ export class IndexedDbStorage {
     return record?.pageIds;
   }
 
-  async saveFavorites(mangaId: string, pageIds: string[]): Promise<void> {
-    await this.put("favorites", {
+  /** 保存できたら true。storage 無効・DB 障害時は false（reject はしない）。 */
+  async saveFavorites(mangaId: string, pageIds: string[]): Promise<boolean> {
+    return this.put("favorites", {
       mangaId,
       pageIds,
       updatedAt: Date.now()
     });
   }
 
-  async saveLayout(layout: Record<string, unknown>): Promise<void> {
-    await this.put("layout", {
+  async saveLayout(layout: Record<string, unknown>): Promise<boolean> {
+    return this.put("layout", {
       id: "global",
       value: layout,
       updatedAt: Date.now()
@@ -126,15 +127,17 @@ export class IndexedDbStorage {
     }
   }
 
-  private async put(storeName: StoreName, value: unknown): Promise<void> {
+  private async put(storeName: StoreName, value: unknown): Promise<boolean> {
     if (!this.enabled) {
-      return;
+      return false;
     }
     try {
       const store = await this.store(storeName, "readwrite");
       await requestToPromise(store.put(value));
+      return true;
     } catch (error) {
       this.warn(error);
+      return false;
     }
   }
 

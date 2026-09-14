@@ -269,12 +269,28 @@ export class MangaViewerCore implements MangaViewerInstance {
     this.store.dispatch({ type: "toggleFavorite", pageId: page.id });
     const next = this.store.getState().favoritePageIds;
     const added = next.includes(page.id);
-    void this.storage.saveFavorites(state.manga.id, next);
-    if (added) {
-      this.notify(this.i18n.t("favorites.added"), "success");
-    }
+    // 保存できたかどうかでトーストの文言を変える（storage 無効時はセッション内のみ）。
+    this.storage
+      .saveFavorites(state.manga.id, next)
+      .then((persisted) => {
+        if (added && !this.destroyed) {
+          this.notifyFavoriteAdded(persisted);
+        }
+      })
+      .catch(() => {
+        if (added && !this.destroyed) {
+          this.notifyFavoriteAdded(false);
+        }
+      });
     this.events.emit("favoritesChange", { pageIds: next });
     return added;
+  }
+
+  private notifyFavoriteAdded(persisted: boolean): void {
+    this.notify(
+      this.i18n.t(persisted ? "favorites.added" : "favorites.addedUnsaved"),
+      persisted ? "success" : "info"
+    );
   }
 
   private removeFavorite(pageIndex: number): void {
@@ -294,7 +310,14 @@ export class MangaViewerCore implements MangaViewerInstance {
       return false;
     }
     if (state.favoritePageIds.includes(page.id)) {
-      this.notify(this.i18n.t("favorites.added"), "success");
+      this.storage
+        .saveFavorites(state.manga.id, state.favoritePageIds)
+        .then((persisted) => {
+          if (!this.destroyed) this.notifyFavoriteAdded(persisted);
+        })
+        .catch(() => {
+          if (!this.destroyed) this.notifyFavoriteAdded(false);
+        });
       return false;
     }
     return this.toggleFavorite(pageIndex);

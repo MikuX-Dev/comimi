@@ -47,6 +47,7 @@
   "favorites.description": "Press and hold a page you love to add it to \"Love it!\". Your saved pages will appear here.",
   "favorites.empty": "No pages saved yet",
   "favorites.added": "Added to Love it!",
+  "favorites.addedUnsaved": "Added to Love it! (not saved in this browser)",
   "favorites.remove": "Remove from Love it!",
   "shortcut.section.page": "Page navigation",
   "shortcut.section.viewMode": "View mode",

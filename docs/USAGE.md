@@ -230,7 +230,7 @@ createMangaViewer(container, {
 
 メニューの「ここすき！」を開くと、説明文と登録したページのサムネイル一覧（登録順）が表示され、サムネイルをタップするとそのページへ移動します。まだ登録が無い場合はその旨のメッセージが出ます。ページ一覧のサムネイルにも登録済みのページにはハートが付きます。
 
-- 登録内容は `manga.id` をキーに IndexedDB へ保存され、次回以降も引き継がれます（`storage.enabled: false` の場合は保存されません）。
+- 登録内容は `manga.id` をキーに IndexedDB へ保存され、次回以降も引き継がれます。`storage.enabled: false` の場合や DB が使えない場合はそのセッション内だけ有効で、トーストは「このブラウザには保存されません」の文言になります。
 - 解除は「ここすき！」一覧の各サムネイル右上の × ボタンから行えます。`viewer.toggleFavorite(pageIndex)` でプログラムから切り替えでき、変更時には `favoritesChange` イベント（`{ pageIds: string[] }`）が発火します。現在の一覧は `viewer.getState().favoritePageIds` で参照できます。
 - HTML ページは対象外です。
 
