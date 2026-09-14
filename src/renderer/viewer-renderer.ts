@@ -837,14 +837,10 @@ export class ViewerRenderer {
       this.touchStart = undefined;
       this.suppressNextClick = true;
       this.setStageDragOffset(0, true);
-      const added = this.callbacks.toggleFavorite(pageIndex);
+      this.callbacks.addFavorite(pageIndex);
       const rect = this.root.getBoundingClientRect();
       this.root.append(
-        renderFavoriteBurst(
-          clientX - rect.left,
-          clientY - rect.top,
-          added ? "add" : "remove"
-        )
+        renderFavoriteBurst(clientX - rect.left, clientY - rect.top)
       );
     }, LONG_PRESS_MS);
     this.longPress = { timer, x: clientX, y: clientY, pageIndex };

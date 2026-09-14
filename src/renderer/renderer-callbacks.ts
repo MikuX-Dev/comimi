@@ -16,6 +16,6 @@ export interface RendererCallbacks {
   setPan(panX: number, panY: number): void;
   resetZoom(): void;
   notify(message: string, tone?: "info" | "success" | "error"): void;
-  /** 「ここすき！」を切り替え、登録されたら true を返す。 */
-  toggleFavorite(pageIndex: number): boolean;
+  /** 「ここすき！」に登録する。すでに登録済みなら何もせず false を返す。 */
+  addFavorite(pageIndex: number): boolean;
 }

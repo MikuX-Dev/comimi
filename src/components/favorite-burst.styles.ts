@@ -104,12 +104,8 @@ export const favoriteBurstStyles = `
   transform-origin: center;
 }
 
-.comimi-favorite-burst[data-mode="add"] .comimi-favorite-burst-fill {
+.comimi-favorite-burst-fill {
   animation: comimi-favorite-popup 0.7s ease-in-out 0.15s both;
-}
-
-.comimi-favorite-burst[data-mode="remove"] .comimi-favorite-burst-fill {
-  animation: comimi-favorite-popout 0.3s ease-in-out 0s both;
 }
 
 @keyframes comimi-favorite-fly {
@@ -166,12 +162,4 @@ export const favoriteBurstStyles = `
   }
 }
 
-@keyframes comimi-favorite-popout {
-  0% {
-    transform: scale(1.04);
-  }
-  100% {
-    transform: scale(0);
-  }
-}
 `;
