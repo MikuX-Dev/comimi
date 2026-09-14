@@ -180,8 +180,14 @@ export class IndexedDbStorage {
 
     this.dbPromise ??= new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(this.databaseName, DB_VERSION);
+      let settled = false;
+      const fail = (error: unknown) => {
+        window.clearTimeout(timer);
+        settled = true;
+        reject(error);
+      };
       const timer = window.setTimeout(() => {
-        reject(
+        fail(
           new Error(
             "IndexedDB open timed out (blocked by another tab holding an older version?)"
           )
@@ -199,16 +205,19 @@ export class IndexedDbStorage {
 
       // 旧バージョンを掴んだ別タブがいると upgrade が始まらない。待たずに諦める。
       request.onblocked = () => {
-        window.clearTimeout(timer);
-        reject(new Error("IndexedDB upgrade blocked by another connection"));
+        fail(new Error("IndexedDB upgrade blocked by another connection"));
       };
       request.onerror = () => {
-        window.clearTimeout(timer);
-        reject(request.error);
+        fail(request.error);
       };
       request.onsuccess = () => {
         window.clearTimeout(timer);
         const db = request.result;
+        // 諦めた後に遅れて開いた接続は使わずに閉じる（次回の open で改めて開く）。
+        if (settled) {
+          db.close();
+          return;
+        }
         // 別タブが新しいバージョンへ更新しようとしたら接続を閉じて道を譲る。
         db.onversionchange = () => {
           db.close();
