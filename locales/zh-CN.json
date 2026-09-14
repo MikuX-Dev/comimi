@@ -47,6 +47,7 @@
   "favorites.description": "长按喜欢的页面即可加入「超喜欢！」。收藏的页面会显示在这里。",
   "favorites.empty": "还没有「超喜欢！」的页面",
   "favorites.added": "已加入超喜欢！",
+  "favorites.addedUnsaved": "已加入超喜欢！（不会保存在此浏览器中）",
   "favorites.remove": "从超喜欢！移除",
   "shortcut.section.page": "翻页",
   "shortcut.section.viewMode": "显示模式",

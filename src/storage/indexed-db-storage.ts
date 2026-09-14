@@ -12,10 +12,19 @@ export interface StorageOptions {
   databaseName?: string;
 }
 
+const DB_VERSION = 3;
+// onblocked が発火しない環境があるため、open はこの時間で打ち切る。
+const OPEN_TIMEOUT_MS = 3000;
+
+/**
+ * IndexedDB による永続化。付加機能なので、DB が開けない・壊れている場合でも
+ * 公開メソッドは reject せず undefined を返し、ビューワーの描画を止めない。
+ */
 export class IndexedDbStorage {
   private enabled: boolean;
   private databaseName: string;
   private dbPromise?: Promise<IDBDatabase>;
+  private warned = false;
 
   constructor(options: StorageOptions = {}) {
     this.enabled = options.enabled !== false && typeof indexedDB !== "undefined";
@@ -30,8 +39,8 @@ export class IndexedDbStorage {
     return record?.value;
   }
 
-  async saveSettings(settings: Partial<ViewerSettings>): Promise<void> {
-    await this.put("settings", {
+  async saveSettings(settings: Partial<ViewerSettings>): Promise<boolean> {
+    return this.put("settings", {
       id: "global",
       value: settings,
       updatedAt: Date.now()
@@ -52,9 +61,9 @@ export class IndexedDbStorage {
   async saveMangaSettings(
     mangaId: string,
     settings: Partial<ViewerSettings>
-  ): Promise<void> {
+  ): Promise<boolean> {
     const existing = await this.getMangaSettings(mangaId);
-    await this.put("mangaSettings", {
+    return this.put("mangaSettings", {
       mangaId,
       value: { ...existing, ...settings },
       updatedAt: Date.now()
@@ -69,8 +78,8 @@ export class IndexedDbStorage {
     return record?.pageIndex;
   }
 
-  async saveProgress(mangaId: string, pageIndex: number): Promise<void> {
-    await this.put("readingProgress", {
+  async saveProgress(mangaId: string, pageIndex: number): Promise<boolean> {
+    return this.put("readingProgress", {
       mangaId,
       pageIndex,
       updatedAt: Date.now()
@@ -83,16 +92,17 @@ export class IndexedDbStorage {
     return record?.pageIds;
   }
 
-  async saveFavorites(mangaId: string, pageIds: string[]): Promise<void> {
-    await this.put("favorites", {
+  /** 保存できたら true。storage 無効・DB 障害時は false（reject はしない）。 */
+  async saveFavorites(mangaId: string, pageIds: string[]): Promise<boolean> {
+    return this.put("favorites", {
       mangaId,
       pageIds,
       updatedAt: Date.now()
     });
   }
 
-  async saveLayout(layout: Record<string, unknown>): Promise<void> {
-    await this.put("layout", {
+  async saveLayout(layout: Record<string, unknown>): Promise<boolean> {
+    return this.put("layout", {
       id: "global",
       value: layout,
       updatedAt: Date.now()
@@ -108,28 +118,50 @@ export class IndexedDbStorage {
     if (!this.enabled) {
       return undefined;
     }
-
-    const store = await this.store(storeName, "readonly");
-
-    return requestToPromise<T | undefined>(store.get(key));
+    try {
+      const store = await this.store(storeName, "readonly");
+      return await requestToPromise<T | undefined>(store.get(key));
+    } catch (error) {
+      this.warn(error);
+      return undefined;
+    }
   }
 
-  private async put(storeName: StoreName, value: unknown): Promise<void> {
+  private async put(storeName: StoreName, value: unknown): Promise<boolean> {
     if (!this.enabled) {
-      return;
+      return false;
     }
-
-    const store = await this.store(storeName, "readwrite");
-    await requestToPromise(store.put(value));
+    try {
+      const store = await this.store(storeName, "readwrite");
+      await requestToPromise(store.put(value));
+      return true;
+    } catch (error) {
+      this.warn(error);
+      return false;
+    }
   }
 
   private async delete(storeName: StoreName, key: IDBValidKey): Promise<void> {
     if (!this.enabled) {
       return;
     }
+    try {
+      const store = await this.store(storeName, "readwrite");
+      await requestToPromise(store.delete(key));
+    } catch (error) {
+      this.warn(error);
+    }
+  }
 
-    const store = await this.store(storeName, "readwrite");
-    await requestToPromise(store.delete(key));
+  private warn(error: unknown): void {
+    if (this.warned) {
+      return;
+    }
+    this.warned = true;
+    console.warn(
+      "[comimi] IndexedDB is unavailable; settings and progress will not be persisted.",
+      error
+    );
   }
 
   private async store(
@@ -146,8 +178,21 @@ export class IndexedDbStorage {
       return Promise.reject(new Error("IndexedDB is not available"));
     }
 
-    this.dbPromise ??= new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.databaseName, 3);
+    this.dbPromise ??= new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(this.databaseName, DB_VERSION);
+      let settled = false;
+      const fail = (error: unknown) => {
+        window.clearTimeout(timer);
+        settled = true;
+        reject(error);
+      };
+      const timer = window.setTimeout(() => {
+        fail(
+          new Error(
+            "IndexedDB open timed out (blocked by another tab holding an older version?)"
+          )
+        );
+      }, OPEN_TIMEOUT_MS);
 
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -158,8 +203,32 @@ export class IndexedDbStorage {
         createStore(db, "favorites", "mangaId");
       };
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      // 旧バージョンを掴んだ別タブがいると upgrade が始まらない。待たずに諦める。
+      request.onblocked = () => {
+        fail(new Error("IndexedDB upgrade blocked by another connection"));
+      };
+      request.onerror = () => {
+        fail(request.error);
+      };
+      request.onsuccess = () => {
+        window.clearTimeout(timer);
+        const db = request.result;
+        // 諦めた後に遅れて開いた接続は使わずに閉じる（次回の open で改めて開く）。
+        if (settled) {
+          db.close();
+          return;
+        }
+        // 別タブが新しいバージョンへ更新しようとしたら接続を閉じて道を譲る。
+        db.onversionchange = () => {
+          db.close();
+          this.dbPromise = undefined;
+        };
+        resolve(db);
+      };
+    }).catch((error: unknown) => {
+      // 失敗した接続をキャッシュしない（次の呼び出しで再試行できるようにする）。
+      this.dbPromise = undefined;
+      throw error;
     });
 
     return this.dbPromise;

@@ -47,6 +47,7 @@
   "favorites.description": "気に入ったページを長押しすると「ここすき！」に登録できます。登録したページがここに並びます。",
   "favorites.empty": "まだ「ここすき！」したページはありません",
   "favorites.added": "ここすき！に登録しました",
+  "favorites.addedUnsaved": "ここすき！に登録しました（このブラウザには保存されません）",
   "favorites.remove": "ここすき！を解除",
   "shortcut.section.page": "ページ移動",
   "shortcut.section.viewMode": "表示モード",

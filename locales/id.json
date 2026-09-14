@@ -47,6 +47,7 @@
   "favorites.description": "Tekan lama halaman yang kamu suka untuk menambahkannya ke \"Suka ini!\". Halaman yang disimpan akan muncul di sini.",
   "favorites.empty": "Belum ada halaman yang disimpan",
   "favorites.added": "Ditambahkan ke Suka ini!",
+  "favorites.addedUnsaved": "Ditambahkan ke Suka ini! (tidak disimpan di browser ini)",
   "favorites.remove": "Hapus dari Suka ini!",
   "shortcut.section.page": "Navigasi halaman",
   "shortcut.section.viewMode": "Mode tampilan",
