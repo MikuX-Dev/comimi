@@ -347,19 +347,28 @@ export const menuPanelStyles = `
 
 .comimi-page-list-heart {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: -6px;
+  right: -6px;
   z-index: 1;
-  width: 16px;
-  height: 16px;
-  color: var(--comimi-love);
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--comimi-muted);
+  box-shadow: var(--comimi-shadow);
+  color: var(--comimi-white);
   opacity: 0;
   transform: scale(0.4);
   transition:
     opacity 0.2s linear,
     transform 0.36s var(--comimi-spring);
   pointer-events: none;
+}
+
+.comimi-page-list-heart > svg {
+  width: 12px;
+  height: 12px;
 }
 
 .comimi-page-list-item[data-favorite="true"] .comimi-page-list-heart {
