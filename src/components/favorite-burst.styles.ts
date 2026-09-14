@@ -7,6 +7,7 @@ export const favoriteBurstStyles = `
   height: var(--comimi-burst-size);
   transform: translate(-50%, -50%) scale(1.4);
   pointer-events: none;
+  animation: comimi-favorite-fade 0.5s ease-out 1.4s both;
 }
 
 .comimi-favorite-burst svg {
@@ -106,6 +107,15 @@ export const favoriteBurstStyles = `
 
 .comimi-favorite-burst-fill {
   animation: comimi-favorite-popup 0.7s ease-in-out 0.15s both;
+}
+
+@keyframes comimi-favorite-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes comimi-favorite-fly {

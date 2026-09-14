@@ -182,7 +182,8 @@ export class MangaViewerCore implements MangaViewerInstance {
       setPan: (panX, panY) => this.store.dispatch({ type: "setPan", panX, panY }),
       resetZoom: () => this.store.dispatch({ type: "resetZoom" }),
       notify: (message, tone) => this.notify(message, tone),
-      addFavorite: (pageIndex) => this.addFavorite(pageIndex)
+      addFavorite: (pageIndex) => this.addFavorite(pageIndex),
+      removeFavorite: (pageIndex) => this.removeFavorite(pageIndex)
     };
 
     this.renderer = new ViewerRenderer(this.container, {
@@ -277,11 +278,24 @@ export class MangaViewerCore implements MangaViewerInstance {
     return added;
   }
 
-  // ロングタップ用。登録済みでも演出は出したいので、解除はせず登録だけ行う。
+  private removeFavorite(pageIndex: number): void {
+    const state = this.store.getState();
+    const page = state.manga.pages[pageIndex];
+    if (!page || !state.favoritePageIds.includes(page.id)) {
+      return;
+    }
+    this.toggleFavorite(pageIndex);
+  }
+
+  // ロングタップ用。登録済みでも演出とトーストは出したいので、解除はせず登録だけ行う。
   private addFavorite(pageIndex: number): boolean {
     const state = this.store.getState();
     const page = state.manga.pages[pageIndex];
-    if (!page || state.favoritePageIds.includes(page.id)) {
+    if (!page) {
+      return false;
+    }
+    if (state.favoritePageIds.includes(page.id)) {
+      this.notify(this.i18n.t("favorites.added"), "success");
       return false;
     }
     return this.toggleFavorite(pageIndex);

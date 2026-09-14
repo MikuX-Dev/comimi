@@ -48,6 +48,7 @@
   "favorites.empty": "아직 「여기 좋아!」한 페이지가 없습니다",
   "favorites.added": "여기 좋아!에 등록했습니다",
   "favorites.removed": "여기 좋아!를 해제했습니다",
+  "favorites.remove": "여기 좋아! 해제",
   "shortcut.section.page": "페이지 이동",
   "shortcut.section.viewMode": "표시 모드",
   "shortcut.section.general": "일반",

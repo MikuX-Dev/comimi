@@ -340,9 +340,20 @@ export class MenuPanel {
       if (index === undefined || !page) {
         continue;
       }
-      const item = this.buildPageListItem(page, index);
-      item.dataset.favorite = "true";
-      this.favoritesGrid.append(item);
+      const cell = document.createElement("div");
+      cell.className = "comimi-favorite-item";
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "comimi-favorite-remove";
+      remove.setAttribute("aria-label", this.i18n.t("favorites.remove"));
+      remove.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.callbacks.removeFavorite(index);
+      });
+
+      cell.append(this.buildPageListItem(page, index), remove);
+      this.favoritesGrid.append(cell);
     }
     const isEmpty = this.favoritesGrid.childElementCount === 0;
     this.favoritesGrid.hidden = isEmpty;

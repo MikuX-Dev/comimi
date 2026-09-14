@@ -48,6 +48,7 @@
   "favorites.empty": "ยังไม่มีหน้าที่「ชอบตรงนี้!」",
   "favorites.added": "บันทึกลงชอบตรงนี้!แล้ว",
   "favorites.removed": "นำออกจากชอบตรงนี้!แล้ว",
+  "favorites.remove": "นำออกจากชอบตรงนี้!",
   "shortcut.section.page": "การเลื่อนหน้า",
   "shortcut.section.viewMode": "โหมดการแสดงผล",
   "shortcut.section.general": "ทั่วไป",

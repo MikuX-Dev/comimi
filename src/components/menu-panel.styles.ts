@@ -367,6 +367,52 @@ export const menuPanelStyles = `
   transform: scale(1);
 }
 
+.comimi-favorite-item {
+  position: relative;
+}
+
+.comimi-favorite-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--comimi-muted);
+  box-shadow: var(--comimi-shadow);
+  cursor: pointer;
+  transition: transform 0.36s var(--comimi-spring);
+}
+
+@media (hover: hover) {
+  .comimi-favorite-remove:hover {
+    transform: scale(1.15);
+  }
+}
+
+.comimi-favorite-remove::before,
+.comimi-favorite-remove::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--comimi-white);
+}
+
+.comimi-favorite-remove::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.comimi-favorite-remove::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .comimi-favorites-inner {
   box-sizing: border-box;
   padding: 0 16px;

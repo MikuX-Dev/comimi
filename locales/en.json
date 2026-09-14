@@ -48,6 +48,7 @@
   "favorites.empty": "No pages saved yet",
   "favorites.added": "Added to Love it!",
   "favorites.removed": "Removed from Love it!",
+  "favorites.remove": "Remove from Love it!",
   "shortcut.section.page": "Page navigation",
   "shortcut.section.viewMode": "View mode",
   "shortcut.section.general": "General",

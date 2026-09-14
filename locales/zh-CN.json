@@ -48,6 +48,7 @@
   "favorites.empty": "还没有「超喜欢！」的页面",
   "favorites.added": "已加入超喜欢！",
   "favorites.removed": "已从超喜欢！移除",
+  "favorites.remove": "从超喜欢！移除",
   "shortcut.section.page": "翻页",
   "shortcut.section.viewMode": "显示模式",
   "shortcut.section.general": "通用",
