@@ -15,23 +15,13 @@ export const notificationsStyles = `
 
 .comimi-toast {
   display: grid;
-  grid-template-columns: auto auto;
-  gap: 5px;
   align-items: center;
   justify-content: center;
   width: fit-content;
-  padding: 6px 13px 6px 8px;
+  padding: 6px 14px;
   border-radius: 999px;
   background-color: var(--comimi-muted);
   animation: comimi-toast-popup 0.37s ease-in-out 0s both;
-}
-
-.comimi-toast-dot {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--comimi-handle-strong);
 }
 
 .comimi-toast-text {
