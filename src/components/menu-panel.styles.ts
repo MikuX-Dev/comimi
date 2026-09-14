@@ -367,8 +367,8 @@ export const menuPanelStyles = `
 }
 
 .comimi-page-list-heart > svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
 }
 
 .comimi-page-list-item[data-favorite="true"] .comimi-page-list-heart {
