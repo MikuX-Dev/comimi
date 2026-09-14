@@ -270,10 +270,9 @@ export class MangaViewerCore implements MangaViewerInstance {
     const next = this.store.getState().favoritePageIds;
     const added = next.includes(page.id);
     void this.storage.saveFavorites(state.manga.id, next);
-    this.notify(
-      this.i18n.t(added ? "favorites.added" : "favorites.removed"),
-      added ? "success" : "info"
-    );
+    if (added) {
+      this.notify(this.i18n.t("favorites.added"), "success");
+    }
     this.events.emit("favoritesChange", { pageIds: next });
     return added;
   }
