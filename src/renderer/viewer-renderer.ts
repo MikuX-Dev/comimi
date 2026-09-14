@@ -85,6 +85,8 @@ export class ViewerRenderer {
   private touchStart?: DragStart;
   private pinchStart?: { distance: number; scale: number };
   private longPress?: { timer: number; x: number; y: number; pageIndex: number };
+  // ロングタップが成立したあと、指を離すまでの release 系イベントを握りつぶす。
+  private longPressFired = false;
   private pageStage: PageStage;
   private pageTurnTimer?: number;
   private splashRemoveTimer?: number;
@@ -644,6 +646,7 @@ export class ViewerRenderer {
       // 新しいジェスチャの開始時に、前回の操作で立った抑止フラグを必ず解放する。
       // スワイプ（touch）は合成clickを発火しないためフラグが残り、次のタップを1回食う。
       this.suppressNextClick = false;
+      this.longPressFired = false;
       if (this.isPageTurnAnimating || this.isSwipeBlockingTarget(event.target)) {
         return;
       }
@@ -687,6 +690,7 @@ export class ViewerRenderer {
       // 新しいジェスチャの開始時に、前回の操作で立った抑止フラグを必ず解放する。
       // スワイプは合成clickを発火しないためフラグが残り、次のタップを1回食う。
       this.suppressNextClick = false;
+      this.longPressFired = false;
       if (this.isPageTurnAnimating) {
         return;
       }
@@ -784,6 +788,23 @@ export class ViewerRenderer {
       event.preventDefault();
     };
 
+    // ロングタップ成立後の release 系イベントは他のどの処理にも渡さない。
+    const onCaptureRelease = (event: Event) => {
+      if (!this.longPressFired) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    for (const type of ["click", "mouseup", "touchend", "touchcancel", "contextmenu"]) {
+      this.root.addEventListener(type, onCaptureRelease, { capture: true, passive: false });
+      this.cleanup.push(() =>
+        this.root.removeEventListener(type, onCaptureRelease, true)
+      );
+    }
+    window.addEventListener("mouseup", onCaptureRelease, true);
+    this.cleanup.push(() =>
+      window.removeEventListener("mouseup", onCaptureRelease, true)
+    );
+
     this.root.addEventListener("click", onCaptureClick, true);
     this.root.addEventListener("click", onClick);
     this.root.addEventListener("wheel", onWheel, { passive: false });
@@ -833,6 +854,7 @@ export class ViewerRenderer {
     }
     const timer = window.setTimeout(() => {
       this.longPress = undefined;
+      this.longPressFired = true;
       this.mouseStart = undefined;
       this.touchStart = undefined;
       this.suppressNextClick = true;
