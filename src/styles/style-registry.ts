@@ -3,6 +3,7 @@ import { centerMessageStyles } from "../components/center-message.styles";
 import { comimiLogoStyles } from "../components/comimi-logo.styles";
 import { controlsDockStyles } from "../components/controls-dock.styles";
 import { errorIconStyles } from "../components/error-icon.styles";
+import { favoriteBurstStyles } from "../components/favorite-burst.styles";
 import { iconStyles } from "../components/icons.styles";
 import { inputsStyles } from "../components/inputs.styles";
 import { loadingIconStyles } from "../components/loading-icon.styles";
@@ -36,6 +37,7 @@ const viewerStyles = [
   settingsPanelStyles,
   menuPanelStyles,
   notificationsStyles,
+  favoriteBurstStyles,
   rabbitMascotStyles,
   comimiLogoStyles,
   splashScreenStyles,

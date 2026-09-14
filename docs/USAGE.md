@@ -65,6 +65,7 @@ interface MangaViewerInstance {
   toggleOverlay(force?: boolean): void;
   toggleAutoPageTurn(): void;
   toggleFullscreen(): Promise<void>;
+  toggleFavorite(pageIndex: number): boolean;
   on<T extends ViewerEventName>(
     eventName: T,
     handler: ViewerEventHandler<T>
@@ -89,6 +90,7 @@ interface MangaViewerOptions {
     pageChange: (e: { pageIndex: number; page: MangaPage }) => void;
     settingsChange: (e: { settings: ViewerSettings }) => void;
     layoutChange: (e: { layoutMode: LayoutMode }) => void;
+    favoritesChange: (e: { pageIds: string[] }) => void;
     destroy: () => void;
   }>;
   resolvePageSrc?: (ctx: {
@@ -222,6 +224,16 @@ createMangaViewer(container, {
 
 メニューパネルの「ページ一覧」では、上部に作品のタイトル・作者名・総ページ数と、先頭ページを表紙としたサムネイルを表示し、その下にページのグリッドを並べます。サムネイルをクリックするとそのページへ移動します。
 
+## ここすき！（メニュー → ここすき！）
+
+読んでいるページ（画像ページ）を **長押し（約 0.5 秒）** すると、押した位置にハートの演出が出て、そのページが「ここすき！」に登録されます。登録済みのページでも演出は毎回再生されます（登録時にはトーストが表示されます）。
+
+メニューの「ここすき！」を開くと、説明文と登録したページのサムネイル一覧（登録順）が表示され、サムネイルをタップするとそのページへ移動します。まだ登録が無い場合はその旨のメッセージが出ます。ページ一覧のサムネイルにも登録済みのページにはハートが付きます。
+
+- 登録内容は `manga.id` をキーに IndexedDB へ保存され、次回以降も引き継がれます（`storage.enabled: false` の場合は保存されません）。
+- 解除は「ここすき！」一覧の各サムネイル右上の × ボタンから行えます。`viewer.toggleFavorite(pageIndex)` でプログラムから切り替えでき、変更時には `favoritesChange` イベント（`{ pageIds: string[] }`）が発火します。現在の一覧は `viewer.getState().favoritePageIds` で参照できます。
+- HTML ページは対象外です。
+
 ## 共有（メニュー → 共有）
 
 メニューパネルの「共有」からページの URL をコピーできます。URL 入力欄は読み取り専用で、「コピー」ボタンでクリップボードにコピーします（コピー完了時に通知が出ます）。`initialPageQueryParam` を指定している場合は、現在のページを開始位置として URL に付与するチェックボックスも表示されます。
@@ -302,6 +314,7 @@ createMangaViewer(container, {
 - **作品ごとの設定**（`pageTurnMode`, `hasCover`, `readingDirection`）— `manga.id` をキーに保存
 - 現在のレイアウトモードと wide の高さ
 - 作品ごとの現在ページ（`manga.id` をキーに保存）
+- 作品ごとの「ここすき！」ページ一覧（`manga.id` をキーに保存）
 
 `pageTurnMode` / `hasCover` / `readingDirection` は作品ごとに記憶されます。保存値がまだ無い作品では、`settings` オプション（無ければ組み込みデフォルト）の値が使われ、変更するとその作品に対して記憶されます。別の作品へ切り替えると、その作品の保存値（無ければデフォルト）に戻ります。
 

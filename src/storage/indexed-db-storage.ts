@@ -4,7 +4,8 @@ type StoreName =
   | "settings"
   | "readingProgress"
   | "layout"
-  | "mangaSettings";
+  | "mangaSettings"
+  | "favorites";
 
 export interface StorageOptions {
   enabled?: boolean;
@@ -76,6 +77,20 @@ export class IndexedDbStorage {
     });
   }
 
+  /** 作品ごとの「ここすき！」ページ id 一覧。 */
+  async getFavorites(mangaId: string): Promise<string[] | undefined> {
+    const record = await this.get<{ pageIds: string[] }>("favorites", mangaId);
+    return record?.pageIds;
+  }
+
+  async saveFavorites(mangaId: string, pageIds: string[]): Promise<void> {
+    await this.put("favorites", {
+      mangaId,
+      pageIds,
+      updatedAt: Date.now()
+    });
+  }
+
   async saveLayout(layout: Record<string, unknown>): Promise<void> {
     await this.put("layout", {
       id: "global",
@@ -132,7 +147,7 @@ export class IndexedDbStorage {
     }
 
     this.dbPromise ??= new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.databaseName, 2);
+      const request = indexedDB.open(this.databaseName, 3);
 
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -140,6 +155,7 @@ export class IndexedDbStorage {
         createStore(db, "readingProgress", "mangaId");
         createStore(db, "layout", "id");
         createStore(db, "mangaSettings", "mangaId");
+        createStore(db, "favorites", "mangaId");
       };
 
       request.onsuccess = () => resolve(request.result);

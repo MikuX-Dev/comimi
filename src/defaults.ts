@@ -46,6 +46,7 @@ export function createInitialState(
       mode: settings.layoutMode
     },
     notifications: [],
+    favoritePageIds: [],
     panel: "none"
   };
 }

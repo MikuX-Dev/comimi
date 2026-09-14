@@ -181,7 +181,9 @@ export class MangaViewerCore implements MangaViewerInstance {
         this.store.dispatch({ type: "setZoom", scale, panX, panY }),
       setPan: (panX, panY) => this.store.dispatch({ type: "setPan", panX, panY }),
       resetZoom: () => this.store.dispatch({ type: "resetZoom" }),
-      notify: (message, tone) => this.notify(message, tone)
+      notify: (message, tone) => this.notify(message, tone),
+      addFavorite: (pageIndex) => this.addFavorite(pageIndex),
+      removeFavorite: (pageIndex) => this.removeFavorite(pageIndex)
     };
 
     this.renderer = new ViewerRenderer(this.container, {
@@ -243,6 +245,59 @@ export class MangaViewerCore implements MangaViewerInstance {
     this.store.dispatch({ type: "setManga", manga, pageIndex });
     // 作品ごと設定を新しい作品のものへ切り替える（保存値が無ければデフォルト）。
     await this.applyMangaSettings(manga.id);
+    await this.applyFavorites(manga.id);
+  }
+
+  private async applyFavorites(mangaId: string): Promise<void> {
+    const saved = await this.storage.getFavorites(mangaId);
+    if (this.destroyed) {
+      return;
+    }
+    const pageIds = new Set(this.store.getState().manga.pages.map((p) => p.id));
+    this.store.dispatch({
+      type: "setFavorites",
+      pageIds: (saved ?? []).filter((id) => pageIds.has(id))
+    });
+  }
+
+  toggleFavorite(pageIndex: number): boolean {
+    const state = this.store.getState();
+    const page = state.manga.pages[pageIndex];
+    if (!page) {
+      return false;
+    }
+    this.store.dispatch({ type: "toggleFavorite", pageId: page.id });
+    const next = this.store.getState().favoritePageIds;
+    const added = next.includes(page.id);
+    void this.storage.saveFavorites(state.manga.id, next);
+    if (added) {
+      this.notify(this.i18n.t("favorites.added"), "success");
+    }
+    this.events.emit("favoritesChange", { pageIds: next });
+    return added;
+  }
+
+  private removeFavorite(pageIndex: number): void {
+    const state = this.store.getState();
+    const page = state.manga.pages[pageIndex];
+    if (!page || !state.favoritePageIds.includes(page.id)) {
+      return;
+    }
+    this.toggleFavorite(pageIndex);
+  }
+
+  // ロングタップ用。登録済みでも演出とトーストは出したいので、解除はせず登録だけ行う。
+  private addFavorite(pageIndex: number): boolean {
+    const state = this.store.getState();
+    const page = state.manga.pages[pageIndex];
+    if (!page) {
+      return false;
+    }
+    if (state.favoritePageIds.includes(page.id)) {
+      this.notify(this.i18n.t("favorites.added"), "success");
+      return false;
+    }
+    return this.toggleFavorite(pageIndex);
   }
 
   async setPages(pages: MangaPage[]): Promise<void> {
@@ -402,17 +457,23 @@ export class MangaViewerCore implements MangaViewerInstance {
 
   private async bootstrap(): Promise<void> {
     const mangaId = this.store.getState().manga.id;
-    const [savedSettings, savedLayout, progress, savedMangaSettings] =
-      await Promise.all([
-        this.storage.getSettings(),
-        this.storage.getLayout<{
-          mode?: LayoutMode | "theater";
-          wideHeightPx?: number;
-          theaterHeightPx?: number;
-        }>(),
-        this.storage.getProgress(mangaId),
-        this.storage.getMangaSettings(mangaId)
-      ]);
+    const [
+      savedSettings,
+      savedLayout,
+      progress,
+      savedMangaSettings,
+      savedFavorites
+    ] = await Promise.all([
+      this.storage.getSettings(),
+      this.storage.getLayout<{
+        mode?: LayoutMode | "theater";
+        wideHeightPx?: number;
+        theaterHeightPx?: number;
+      }>(),
+      this.storage.getProgress(mangaId),
+      this.storage.getMangaSettings(mangaId),
+      this.storage.getFavorites(mangaId)
+    ]);
 
     // await 中に destroy された場合は何もしない（StrictMode の
     // mount→unmount→mount で破棄済みインスタンスが DOM を触るのを防ぐ）。
@@ -464,6 +525,15 @@ export class MangaViewerCore implements MangaViewerInstance {
     }
     if (this.initialPageIndex === undefined && typeof progress === "number") {
       this.store.dispatch({ type: "goToPage", pageIndex: progress });
+    }
+    if (savedFavorites && savedFavorites.length > 0) {
+      const pageIds = new Set(
+        this.store.getState().manga.pages.map((page) => page.id)
+      );
+      this.store.dispatch({
+        type: "setFavorites",
+        pageIds: savedFavorites.filter((id) => pageIds.has(id))
+      });
     }
 
     this.renderer.update(this.store.getState());

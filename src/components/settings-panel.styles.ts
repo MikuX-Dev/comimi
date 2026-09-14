@@ -200,6 +200,7 @@ export const settingsPanelStyles = `
     font: inherit;
     font-size: 15px;
     font-weight: 700;
+    text-align: center;
     cursor: pointer;
   }
 }

@@ -36,14 +36,11 @@ export class Notifications {
       toast.className = "comimi-toast";
       toast.dataset.tone = notification.tone ?? "info";
 
-      const dot = document.createElement("span");
-      dot.className = "comimi-toast-dot";
-
       const text = document.createElement("span");
       text.className = "comimi-toast-text";
       text.textContent = notification.message;
 
-      toast.append(dot, text);
+      toast.append(text);
       this.root.append(toast);
       this.toasts.set(notification.id, toast);
     }

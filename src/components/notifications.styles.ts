@@ -7,29 +7,21 @@ export const notificationsStyles = `
   display: grid;
   row-gap: 8px;
   justify-items: center;
+  width: max-content;
+  max-width: calc(100% - 32px);
   pointer-events: none;
   z-index: 3;
 }
 
 .comimi-toast {
   display: grid;
-  grid-template-columns: auto auto;
-  gap: 5px;
   align-items: center;
   justify-content: center;
   width: fit-content;
-  padding: 6px 13px 6px 8px;
+  padding: 6px 14px;
   border-radius: 999px;
   background-color: var(--comimi-muted);
   animation: comimi-toast-popup 0.37s ease-in-out 0s both;
-}
-
-.comimi-toast-dot {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--comimi-handle-strong);
 }
 
 .comimi-toast-text {
@@ -37,6 +29,7 @@ export const notificationsStyles = `
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;
+  white-space: nowrap;
 }
 
 @keyframes comimi-toast-popup {

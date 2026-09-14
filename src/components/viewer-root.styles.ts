@@ -25,10 +25,12 @@ export const viewerRootStyles = `
   --comimi-handle-strong: #888;
   --comimi-mascot: #fff;
   --comimi-mascot-shade: #e0e0e0;
+  --comimi-love: #ff9fb6;
   --comimi-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   background: var(--comimi-bg);
   color: var(--comimi-fg);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: normal;
   position: relative;
   width: calc(100% - 24px * 2);
   max-width: 900px;
@@ -49,6 +51,19 @@ export const viewerRootStyles = `
 .comimi-root *:not(.comimi-html-page):not(.comimi-html-page *):not(.comimi-share-url) {
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* ホスト側のリセット CSS（destyle.css 等）に左右されないよう、
+   ライブラリが前提にしているブラウザ既定値を明示する。 */
+:where(.comimi-root) button,
+:where(.comimi-root) input,
+:where(.comimi-root) select {
+  font: inherit;
+  line-height: normal;
+}
+
+:where(.comimi-root) button {
+  text-align: center;
 }
 
 .comimi-root:focus {

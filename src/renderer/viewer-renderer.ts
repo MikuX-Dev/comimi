@@ -14,6 +14,7 @@ import {
 import { PageStage } from "../components/page-stage";
 import { Notifications } from "../components/notifications";
 import { renderSplashScreen } from "../components/splash-screen";
+import { renderFavoriteBurst } from "../components/favorite-burst";
 import { resolveMascot } from "../components/mascot";
 import { createViewerRoot } from "../components/viewer-root";
 import { clampZoom } from "../defaults";
@@ -37,6 +38,9 @@ interface DragStart {
 }
 
 const PAGE_TURN_ANIMATION_MS = 180;
+// 「ここすき！」のロングタップ判定。押してからこの時間動かなければ登録する。
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_MOVE_TOLERANCE_PX = 10;
 // ホイール／ピンチの deltaY 1px あたりのズーム量（指数）。
 // トラックパッドのピンチは小さな deltaY が連続で届くため、量に比例させて滑らかにする。
 const WHEEL_ZOOM_SENSITIVITY = 0.01;
@@ -80,6 +84,9 @@ export class ViewerRenderer {
   private mouseStart?: DragStart;
   private touchStart?: DragStart;
   private pinchStart?: { distance: number; scale: number };
+  private longPress?: { timer: number; x: number; y: number; pageIndex: number };
+  // ロングタップが成立したあと、指を離すまでの release 系イベントを握りつぶす。
+  private longPressFired = false;
   private pageStage: PageStage;
   private pageTurnTimer?: number;
   private splashRemoveTimer?: number;
@@ -260,7 +267,8 @@ export class ViewerRenderer {
         child !== this.splash &&
         child !== this.autoplayProgress?.root &&
         child !== notificationsEl &&
-        child !== arrowButtonsEl
+        child !== arrowButtonsEl &&
+        !child.classList.contains("comimi-favorite-burst")
       ) {
         child.remove();
       }
@@ -409,6 +417,7 @@ export class ViewerRenderer {
 
   destroy(): void {
     this.destroyed = true;
+    this.cancelLongPress();
     window.clearTimeout(this.pageTurnTimer);
     window.clearTimeout(this.splashRemoveTimer);
     if (this.overlayApplyRaf !== undefined) {
@@ -637,11 +646,16 @@ export class ViewerRenderer {
       // 新しいジェスチャの開始時に、前回の操作で立った抑止フラグを必ず解放する。
       // スワイプ（touch）は合成clickを発火しないためフラグが残り、次のタップを1回食う。
       this.suppressNextClick = false;
+      this.longPressFired = false;
       if (this.isPageTurnAnimating || this.isSwipeBlockingTarget(event.target)) {
         return;
       }
 
-      if (event.button !== 0 || this.isSwipeLocked(state)) {
+      if (event.button !== 0) {
+        return;
+      }
+      this.startLongPress(event.target, event.clientX, event.clientY, state);
+      if (this.isSwipeLocked(state)) {
         return;
       }
 
@@ -653,6 +667,7 @@ export class ViewerRenderer {
       };
     };
     const onMouseMove = (event: MouseEvent) => {
+      this.trackLongPress(event.clientX, event.clientY);
       if (!this.mouseStart) {
         return;
       }
@@ -661,6 +676,7 @@ export class ViewerRenderer {
       this.handleDragMove(event.clientX, event.clientY, this.mouseStart, state);
     };
     const onMouseUp = (event: MouseEvent) => {
+      this.cancelLongPress();
       if (!this.mouseStart) {
         return;
       }
@@ -674,12 +690,14 @@ export class ViewerRenderer {
       // 新しいジェスチャの開始時に、前回の操作で立った抑止フラグを必ず解放する。
       // スワイプは合成clickを発火しないためフラグが残り、次のタップを1回食う。
       this.suppressNextClick = false;
+      this.longPressFired = false;
       if (this.isPageTurnAnimating) {
         return;
       }
 
       if (event.touches.length === 2) {
         event.preventDefault();
+        this.cancelLongPress();
         this.touchStart = undefined;
         this.pinchStart = {
           distance: touchDistance(event),
@@ -688,15 +706,15 @@ export class ViewerRenderer {
         return;
       }
 
-      if (
-        this.isSwipeBlockingTarget(event.target) ||
-        this.isSwipeLocked(state)
-      ) {
+      if (this.isSwipeBlockingTarget(event.target)) {
         return;
       }
-
       const touch = event.touches[0];
       if (!touch) {
+        return;
+      }
+      this.startLongPress(event.target, touch.clientX, touch.clientY, state);
+      if (this.isSwipeLocked(state)) {
         return;
       }
 
@@ -708,6 +726,10 @@ export class ViewerRenderer {
       };
     };
     const onTouchMove = (event: TouchEvent) => {
+      const moveTouch = event.touches[0];
+      if (moveTouch) {
+        this.trackLongPress(moveTouch.clientX, moveTouch.clientY);
+      }
       if (this.pinchStart && event.touches.length === 2) {
         event.preventDefault();
         const requested =
@@ -732,6 +754,7 @@ export class ViewerRenderer {
       this.handleDragMove(touch.clientX, touch.clientY, this.touchStart, state);
     };
     const onTouchEnd = (event: TouchEvent) => {
+      this.cancelLongPress();
       if (event.touches.length < 2) {
         this.pinchStart = undefined;
       }
@@ -765,6 +788,23 @@ export class ViewerRenderer {
       event.preventDefault();
     };
 
+    // ロングタップ成立後の release 系イベントは他のどの処理にも渡さない。
+    const onCaptureRelease = (event: Event) => {
+      if (!this.longPressFired) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    for (const type of ["click", "mouseup", "touchend", "touchcancel", "contextmenu"]) {
+      this.root.addEventListener(type, onCaptureRelease, { capture: true, passive: false });
+      this.cleanup.push(() =>
+        this.root.removeEventListener(type, onCaptureRelease, true)
+      );
+    }
+    window.addEventListener("mouseup", onCaptureRelease, true);
+    this.cleanup.push(() =>
+      window.removeEventListener("mouseup", onCaptureRelease, true)
+    );
+
     this.root.addEventListener("click", onCaptureClick, true);
     this.root.addEventListener("click", onClick);
     this.root.addEventListener("wheel", onWheel, { passive: false });
@@ -774,6 +814,7 @@ export class ViewerRenderer {
     this.root.addEventListener("touchstart", onTouchStart, { passive: false });
     this.root.addEventListener("touchmove", onTouchMove, { passive: false });
     this.root.addEventListener("touchend", onTouchEnd);
+    this.root.addEventListener("touchcancel", onTouchEnd);
     this.root.addEventListener("dragstart", onDragStart);
 
     this.cleanup.push(
@@ -786,8 +827,65 @@ export class ViewerRenderer {
       () => this.root.removeEventListener("touchstart", onTouchStart),
       () => this.root.removeEventListener("touchmove", onTouchMove),
       () => this.root.removeEventListener("touchend", onTouchEnd),
+      () => this.root.removeEventListener("touchcancel", onTouchEnd),
       () => this.root.removeEventListener("dragstart", onDragStart)
     );
+  }
+
+  // ページ画像の上でロングタップしたら「ここすき！」を切り替え、押した位置にハートを出す。
+  private startLongPress(
+    target: EventTarget | null,
+    clientX: number,
+    clientY: number,
+    state: ViewerState
+  ): void {
+    this.cancelLongPress();
+    const slot =
+      target instanceof Element
+        ? target.closest<HTMLElement>(".comimi-page")
+        : null;
+    if (!slot) {
+      return;
+    }
+    const pageIndex = Number(slot.dataset.pageIndex);
+    const page = state.manga.pages[pageIndex];
+    if (!page || page.type !== "image") {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      this.longPress = undefined;
+      this.longPressFired = true;
+      this.mouseStart = undefined;
+      this.touchStart = undefined;
+      this.suppressNextClick = true;
+      this.setStageDragOffset(0, true);
+      this.callbacks.addFavorite(pageIndex);
+      const rect = this.root.getBoundingClientRect();
+      this.root.append(
+        renderFavoriteBurst(clientX - rect.left, clientY - rect.top)
+      );
+    }, LONG_PRESS_MS);
+    this.longPress = { timer, x: clientX, y: clientY, pageIndex };
+  }
+
+  private trackLongPress(clientX: number, clientY: number): void {
+    if (!this.longPress) {
+      return;
+    }
+    if (
+      Math.abs(clientX - this.longPress.x) > LONG_PRESS_MOVE_TOLERANCE_PX ||
+      Math.abs(clientY - this.longPress.y) > LONG_PRESS_MOVE_TOLERANCE_PX
+    ) {
+      this.cancelLongPress();
+    }
+  }
+
+  private cancelLongPress(): void {
+    if (!this.longPress) {
+      return;
+    }
+    window.clearTimeout(this.longPress.timer);
+    this.longPress = undefined;
   }
 
   private handleDragMove(
