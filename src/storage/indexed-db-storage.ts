@@ -12,10 +12,19 @@ export interface StorageOptions {
   databaseName?: string;
 }
 
+const DB_VERSION = 3;
+// onblocked が発火しない環境があるため、open はこの時間で打ち切る。
+const OPEN_TIMEOUT_MS = 3000;
+
+/**
+ * IndexedDB による永続化。付加機能なので、DB が開けない・壊れている場合でも
+ * 公開メソッドは reject せず undefined を返し、ビューワーの描画を止めない。
+ */
 export class IndexedDbStorage {
   private enabled: boolean;
   private databaseName: string;
   private dbPromise?: Promise<IDBDatabase>;
+  private warned = false;
 
   constructor(options: StorageOptions = {}) {
     this.enabled = options.enabled !== false && typeof indexedDB !== "undefined";
@@ -108,28 +117,48 @@ export class IndexedDbStorage {
     if (!this.enabled) {
       return undefined;
     }
-
-    const store = await this.store(storeName, "readonly");
-
-    return requestToPromise<T | undefined>(store.get(key));
+    try {
+      const store = await this.store(storeName, "readonly");
+      return await requestToPromise<T | undefined>(store.get(key));
+    } catch (error) {
+      this.warn(error);
+      return undefined;
+    }
   }
 
   private async put(storeName: StoreName, value: unknown): Promise<void> {
     if (!this.enabled) {
       return;
     }
-
-    const store = await this.store(storeName, "readwrite");
-    await requestToPromise(store.put(value));
+    try {
+      const store = await this.store(storeName, "readwrite");
+      await requestToPromise(store.put(value));
+    } catch (error) {
+      this.warn(error);
+    }
   }
 
   private async delete(storeName: StoreName, key: IDBValidKey): Promise<void> {
     if (!this.enabled) {
       return;
     }
+    try {
+      const store = await this.store(storeName, "readwrite");
+      await requestToPromise(store.delete(key));
+    } catch (error) {
+      this.warn(error);
+    }
+  }
 
-    const store = await this.store(storeName, "readwrite");
-    await requestToPromise(store.delete(key));
+  private warn(error: unknown): void {
+    if (this.warned) {
+      return;
+    }
+    this.warned = true;
+    console.warn(
+      "[comimi] IndexedDB is unavailable; settings and progress will not be persisted.",
+      error
+    );
   }
 
   private async store(
@@ -146,8 +175,15 @@ export class IndexedDbStorage {
       return Promise.reject(new Error("IndexedDB is not available"));
     }
 
-    this.dbPromise ??= new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.databaseName, 3);
+    this.dbPromise ??= new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(this.databaseName, DB_VERSION);
+      const timer = window.setTimeout(() => {
+        reject(
+          new Error(
+            "IndexedDB open timed out (blocked by another tab holding an older version?)"
+          )
+        );
+      }, OPEN_TIMEOUT_MS);
 
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -158,8 +194,29 @@ export class IndexedDbStorage {
         createStore(db, "favorites", "mangaId");
       };
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      // 旧バージョンを掴んだ別タブがいると upgrade が始まらない。待たずに諦める。
+      request.onblocked = () => {
+        window.clearTimeout(timer);
+        reject(new Error("IndexedDB upgrade blocked by another connection"));
+      };
+      request.onerror = () => {
+        window.clearTimeout(timer);
+        reject(request.error);
+      };
+      request.onsuccess = () => {
+        window.clearTimeout(timer);
+        const db = request.result;
+        // 別タブが新しいバージョンへ更新しようとしたら接続を閉じて道を譲る。
+        db.onversionchange = () => {
+          db.close();
+          this.dbPromise = undefined;
+        };
+        resolve(db);
+      };
+    }).catch((error: unknown) => {
+      // 失敗した接続をキャッシュしない（次の呼び出しで再試行できるようにする）。
+      this.dbPromise = undefined;
+      throw error;
     });
 
     return this.dbPromise;
