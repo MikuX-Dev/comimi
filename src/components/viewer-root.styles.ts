@@ -55,14 +55,14 @@ export const viewerRootStyles = `
 
 /* ホスト側のリセット CSS（destyle.css 等）に左右されないよう、
    ライブラリが前提にしているブラウザ既定値を明示する。 */
-.comimi-root button,
-.comimi-root input,
-.comimi-root select {
+:where(.comimi-root) button,
+:where(.comimi-root) input,
+:where(.comimi-root) select {
   font: inherit;
   line-height: normal;
 }
 
-.comimi-root button {
+:where(.comimi-root) button {
   text-align: center;
 }
 
