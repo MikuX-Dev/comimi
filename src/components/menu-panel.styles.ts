@@ -170,6 +170,7 @@ export const menuPanelStyles = `
 .comimi-menu-panel[data-view="menu"] .comimi-menu-view-menu,
 .comimi-menu-panel[data-view="shortcut"] .comimi-menu-view-shortcut,
 .comimi-menu-panel[data-view="pageList"] .comimi-menu-view-page-list,
+.comimi-menu-panel[data-view="favorites"] .comimi-menu-view-favorites,
 .comimi-menu-panel[data-view="share"] .comimi-menu-view-share,
 .comimi-menu-panel[data-view="about"] .comimi-menu-view-about {
   opacity: 1;
@@ -342,6 +343,68 @@ export const menuPanelStyles = `
   line-height: 1.4;
   text-align: center;
   pointer-events: none;
+}
+
+.comimi-page-list-heart {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  color: var(--comimi-love);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.2s linear,
+    transform 0.36s var(--comimi-spring);
+  pointer-events: none;
+}
+
+.comimi-page-list-item[data-favorite="true"] .comimi-page-list-heart {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.comimi-favorites-inner {
+  box-sizing: border-box;
+  padding: 0 16px;
+  max-height: 315px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.comimi-favorites-description {
+  margin: 0;
+  padding: 0 6px 14px;
+  color: var(--comimi-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.comimi-favorites-empty {
+  display: grid;
+  justify-items: center;
+  row-gap: 8px;
+  padding: 12px 0 24px;
+  color: var(--comimi-faint);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.comimi-favorites-empty > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--comimi-placeholder);
+}
+
+.comimi-favorites-empty[hidden],
+.comimi-favorites-inner .comimi-page-list-grid[hidden] {
+  display: none;
 }
 
 .comimi-page-list-thumb-html {
@@ -760,6 +823,7 @@ export const menuPanelStyles = `
   }
 
   .comimi-page-list-inner,
+  .comimi-favorites-inner,
   .comimi-shortcut-inner {
     max-height: calc(var(--view-height, 100vh) - 62px - 56px);
   }

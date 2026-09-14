@@ -7,6 +7,8 @@ export const notificationsStyles = `
   display: grid;
   row-gap: 8px;
   justify-items: center;
+  width: max-content;
+  max-width: calc(100% - 32px);
   pointer-events: none;
   z-index: 3;
 }
@@ -37,6 +39,7 @@ export const notificationsStyles = `
   font-size: 12px;
   font-weight: 700;
   line-height: 1.45;
+  white-space: nowrap;
 }
 
 @keyframes comimi-toast-popup {

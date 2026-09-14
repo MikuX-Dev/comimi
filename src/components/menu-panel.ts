@@ -1,5 +1,5 @@
 import { I18n } from "../i18n/i18n";
-import type { MascotOption, ViewerState } from "../types";
+import type { MangaPage, MascotOption, ViewerState } from "../types";
 import type { RendererCallbacks } from "../renderer/renderer-callbacks";
 import {
   COMIMI_REPOSITORY_URL,
@@ -12,11 +12,18 @@ import { Checkbox } from "./inputs";
 import { renderRabbitMascot } from "./rabbit-mascot";
 import { bindScrollFade } from "./scroll-fade";
 
-type MenuView = "menu" | "shortcut" | "pageList" | "share" | "about";
+type MenuView =
+  | "menu"
+  | "shortcut"
+  | "pageList"
+  | "favorites"
+  | "share"
+  | "about";
 
 const MENU_PANELS: ReadonlySet<ViewerState["panel"]> = new Set([
   "menu",
   "pages",
+  "favorites",
   "shortcuts",
   "share",
   "about"
@@ -29,6 +36,7 @@ export function isMenuPanel(panel: ViewerState["panel"]): boolean {
 
 const MENU_VIEWS: Partial<Record<ViewerState["panel"], MenuView>> = {
   pages: "pageList",
+  favorites: "favorites",
   shortcuts: "shortcut",
   share: "share",
   about: "about"
@@ -36,6 +44,7 @@ const MENU_VIEWS: Partial<Record<ViewerState["panel"], MenuView>> = {
 
 const VIEW_TITLE_KEYS: Record<Exclude<MenuView, "menu">, string> = {
   pageList: "menu.openPages",
+  favorites: "menu.openFavorites",
   shortcut: "menu.openShortcuts",
   share: "menu.openShare",
   about: "menu.openAbout"
@@ -58,6 +67,11 @@ export class MenuPanel {
   private viewMenu: HTMLDivElement;
   private viewShortcut: HTMLDivElement;
   private viewPageList: HTMLDivElement;
+  private viewFavorites: HTMLDivElement;
+  private favoritesGrid: HTMLDivElement;
+  private favoritesEmpty: HTMLDivElement;
+  private favoritesCacheKey?: string;
+  private pageListItems = new Map<number, HTMLButtonElement>();
   private viewShare: HTMLDivElement;
   private viewAbout: HTMLDivElement;
   private aboutLogoWrap: HTMLDivElement;
@@ -105,6 +119,8 @@ export class MenuPanel {
     this.viewShortcut = this.buildShortcutView();
     [this.viewPageList, this.pageListInner, this.pageListHead] =
       this.buildPageListView();
+    [this.viewFavorites, this.favoritesGrid, this.favoritesEmpty] =
+      this.buildFavoritesView();
     [this.viewShare, this.shareUrlInput] = this.buildShareView();
     [this.viewAbout, this.aboutLogoWrap] = this.buildAboutView();
 
@@ -113,6 +129,7 @@ export class MenuPanel {
       this.viewMenu,
       this.viewShortcut,
       this.viewPageList,
+      this.viewFavorites,
       this.viewShare,
       this.viewAbout
     );
@@ -165,6 +182,7 @@ export class MenuPanel {
     this.refreshDetailTitle(view);
     this.refreshPageListHead(state);
     this.refreshPageList(state);
+    this.refreshFavorites(state);
     this.refreshShareUrl(state);
     if (view === "about" && this.currentView !== "about") {
       this.replayAboutLogo();
@@ -194,6 +212,7 @@ export class MenuPanel {
       menu: this.viewMenu,
       shortcut: this.viewShortcut,
       pageList: this.viewPageList,
+      favorites: this.viewFavorites,
       share: this.viewShare,
       about: this.viewAbout
     }[view];
@@ -240,49 +259,94 @@ export class MenuPanel {
     this.pageListCacheKey = key;
 
     this.pageListInner.replaceChildren();
+    this.pageListItems.clear();
     state.manga.pages.forEach((page, index) => {
-      const item = document.createElement("button");
-      item.type = "button";
-      item.className = "comimi-page-list-item";
-      item.addEventListener("click", (event) => {
-        event.stopPropagation();
-        this.callbacks.goToPage(index);
-        this.callbacks.setPanel("none");
-      });
-
-      const thumb = document.createElement("span");
-      thumb.className = "comimi-page-list-thumb";
-
-      const badge = document.createElement("span");
-      badge.className = "comimi-page-list-badge";
-      badge.textContent = String(index + 1);
-      thumb.append(badge);
-
-      if (page.type === "image") {
-        const image = document.createElement("img");
-        image.alt =
-          page.alt ??
-          page.label ??
-          this.i18n.t("seek.previewAlt", { page: index + 1 });
-        image.draggable = false;
-        image.src = page.thumbnailSrc ?? page.src;
-        thumb.append(image);
-      } else if (page.type === "html") {
-        const placeholder = document.createElement("span");
-        placeholder.className = "comimi-page-list-thumb-html";
-        placeholder.textContent = this.i18n.t("pageList.htmlContent");
-        thumb.append(placeholder);
-      }
-
-      item.append(thumb);
-      if (page.label) {
-        const text = document.createElement("span");
-        text.className = "comimi-page-list-text";
-        text.textContent = page.label;
-        item.append(text);
-      }
+      const item = this.buildPageListItem(page, index);
+      this.pageListItems.set(index, item);
       this.pageListInner.append(item);
     });
+  }
+
+  private buildPageListItem(page: MangaPage, index: number): HTMLButtonElement {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "comimi-page-list-item";
+    item.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.callbacks.goToPage(index);
+      this.callbacks.setPanel("none");
+    });
+
+    const thumb = document.createElement("span");
+    thumb.className = "comimi-page-list-thumb";
+
+    const badge = document.createElement("span");
+    badge.className = "comimi-page-list-badge";
+    badge.textContent = String(index + 1);
+    thumb.append(badge);
+
+    const heart = document.createElement("span");
+    heart.className = "comimi-page-list-heart";
+    heart.append(icon("heart"));
+    thumb.append(heart);
+
+    if (page.type === "image") {
+      const image = document.createElement("img");
+      image.alt =
+        page.alt ??
+        page.label ??
+        this.i18n.t("seek.previewAlt", { page: index + 1 });
+      image.draggable = false;
+      image.src = page.thumbnailSrc ?? page.src;
+      thumb.append(image);
+    } else if (page.type === "html") {
+      const placeholder = document.createElement("span");
+      placeholder.className = "comimi-page-list-thumb-html";
+      placeholder.textContent = this.i18n.t("pageList.htmlContent");
+      thumb.append(placeholder);
+    }
+
+    item.append(thumb);
+    if (page.label) {
+      const text = document.createElement("span");
+      text.className = "comimi-page-list-text";
+      text.textContent = page.label;
+      item.append(text);
+    }
+    return item;
+  }
+
+  // 「ここすき！」一覧は登録順に並べる。ページ一覧側にはハートのバッジを出す。
+  private refreshFavorites(state: ViewerState): void {
+    const favoriteIds = new Set(state.favoritePageIds);
+    for (const [index, item] of this.pageListItems) {
+      const page = state.manga.pages[index];
+      item.dataset.favorite = String(!!page && favoriteIds.has(page.id));
+    }
+
+    const key = `${state.settings.locale}:${state.manga.id}:${state.favoritePageIds.join(",")}`;
+    if (this.favoritesCacheKey === key) {
+      return;
+    }
+    this.favoritesCacheKey = key;
+
+    const indexById = new Map(
+      state.manga.pages.map((page, index) => [page.id, index] as const)
+    );
+    this.favoritesGrid.replaceChildren();
+    for (const pageId of state.favoritePageIds) {
+      const index = indexById.get(pageId);
+      const page = index === undefined ? undefined : state.manga.pages[index];
+      if (index === undefined || !page) {
+        continue;
+      }
+      const item = this.buildPageListItem(page, index);
+      item.dataset.favorite = "true";
+      this.favoritesGrid.append(item);
+    }
+    const isEmpty = this.favoritesGrid.childElementCount === 0;
+    this.favoritesGrid.hidden = isEmpty;
+    this.favoritesEmpty.hidden = !isEmpty;
   }
 
   private buildTop(): HTMLButtonElement {
@@ -353,6 +417,9 @@ export class MenuPanel {
     list.append(
       this.renderMenuLink("menu.openPages", () =>
         this.callbacks.setPanel("pages")
+      ),
+      this.renderMenuLink("menu.openFavorites", () =>
+        this.callbacks.setPanel("favorites")
       ),
       this.renderMenuLink(
         "menu.openShortcuts",
@@ -466,6 +533,34 @@ export class MenuPanel {
 
     view.append(inner, this.renderBackButton());
     return [view, grid, head];
+  }
+
+  private buildFavoritesView(): [HTMLDivElement, HTMLDivElement, HTMLDivElement] {
+    const view = document.createElement("div");
+    view.className = "comimi-menu-view comimi-menu-view-favorites";
+
+    const inner = document.createElement("div");
+    inner.className = "comimi-favorites-inner";
+
+    const description = document.createElement("p");
+    description.className = "comimi-favorites-description";
+    this.bindI18nText(description, "favorites.description");
+
+    const grid = document.createElement("div");
+    grid.className = "comimi-page-list-grid";
+
+    const empty = document.createElement("div");
+    empty.className = "comimi-favorites-empty";
+    empty.append(icon("heart"));
+    const emptyText = document.createElement("span");
+    this.bindI18nText(emptyText, "favorites.empty");
+    empty.append(emptyText);
+
+    inner.append(description, grid, empty);
+    bindScrollFade(inner);
+
+    view.append(inner, this.renderBackButton());
+    return [view, grid, empty];
   }
 
   private buildPageListHead(): PageListHead {

@@ -102,11 +102,14 @@ export interface ViewerState {
     wideHeightPx?: number;
   };
   notifications: ViewerNotification[];
+  /** 「ここすき！」に登録したページの id 一覧（登録順）。 */
+  favoritePageIds: string[];
   panel:
     | "none"
     | "settings"
     | "menu"
     | "pages"
+    | "favorites"
     | "shortcuts"
     | "share"
     | "about";
@@ -201,6 +204,8 @@ export interface MangaViewerInstance {
   toggleOverlay(force?: boolean): void;
   toggleAutoPageTurn(): void;
   toggleFullscreen(): Promise<void>;
+  /** 指定ページの「ここすき！」を切り替える。登録されたら true を返す。 */
+  toggleFavorite(pageIndex: number): boolean;
   on<T extends ViewerEventName>(
     eventName: T,
     handler: ViewerEventHandler<T>
@@ -212,6 +217,7 @@ export interface ViewerEventMap {
   pageChange: { pageIndex: number; page: MangaPage };
   settingsChange: { settings: ViewerSettings };
   layoutChange: { layoutMode: LayoutMode };
+  favoritesChange: { pageIds: string[] };
   destroy: void;
 }
 
@@ -238,5 +244,7 @@ export type ViewerAction =
   | { type: "setPan"; panX: number; panY: number }
   | { type: "resetZoom" }
   | { type: "setPanel"; panel: ViewerState["panel"] }
+  | { type: "setFavorites"; pageIds: string[] }
+  | { type: "toggleFavorite"; pageId: string }
   | { type: "pushNotification"; notification: ViewerNotification }
   | { type: "removeNotification"; id: string };

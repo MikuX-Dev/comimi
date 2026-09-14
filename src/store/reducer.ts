@@ -149,6 +149,22 @@ export function reducer(state: ViewerState, action: ViewerAction): ViewerState {
         overlayVisible: action.panel !== "none" ? true : state.overlayVisible
       };
 
+    case "setFavorites":
+      return {
+        ...state,
+        favoritePageIds: action.pageIds
+      };
+
+    case "toggleFavorite": {
+      const exists = state.favoritePageIds.includes(action.pageId);
+      return {
+        ...state,
+        favoritePageIds: exists
+          ? state.favoritePageIds.filter((id) => id !== action.pageId)
+          : [...state.favoritePageIds, action.pageId]
+      };
+    }
+
     case "pushNotification":
       return {
         ...state,
